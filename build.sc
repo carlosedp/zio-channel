@@ -1,16 +1,20 @@
 import mill._
 import mill.scalalib._
 
+object versions {
+  val scala = "3.3.0-RC3"
+  val zio   = "2.0.11"
+}
 trait Base extends ScalaModule {
-  def scalaVersion  = "3.3.0-RC3"
+  def scalaVersion  = versions.scala
   def scalacOptions = super.scalacOptions() ++ Seq("-source:future")
   def ivyDeps = super.ivyDeps() ++ Seq(
-    ivy"dev.zio::zio:2.0.10",
+    ivy"dev.zio::zio:${versions.zio}",
   )
 
   object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"dev.zio::zio:2.0.10",
+      ivy"dev.zio::zio:${versions.zio}",
     )
   }
 }
