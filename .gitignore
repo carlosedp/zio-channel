@@ -1,0 +1,42 @@
+*.class
+*.log
+
+# sbt specific
+.cache
+.history
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+**/.bloop
+.bsp/
+
+# mill specific
+out/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+.idea
+
+.metals/
+.ammonite/
+metals.sbt
+metals/project/
+project/metals.sbt
+
+local.*
+
+.DS_Store
+coursier
+
+# Sourcegraph specific
+index.scip
+
+# Custom
+/temporalite
+/config
+shared/resources/META-INF/native-image/.lock
