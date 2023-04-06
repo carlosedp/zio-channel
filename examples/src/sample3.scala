@@ -1,7 +1,7 @@
 // Run with `scala-cli sample2.scala`
 
 //> using scala "3.3.0-RC3"
-//> using lib "dev.zio::zio:2.0.10"
+//> using lib "dev.zio::zio:2.0.11"
 
 //> using file "../../ziochannel/src/Ziochannel.scala"
 //> using file "../../ziochannel/src/Helpers.scala"
@@ -28,7 +28,7 @@ def messageReceiver(channel: Channel[String]): ZIO[Any, IOException, Unit] =
                case Right(data) =>
                  Console.printLine(s"Received: $data") *> ZIO.succeed(true)
                case Left(Closed) =>
-                 Console.printLine(s"Channel closed") *> ZIO.succeed(false)
+                 Console.printLine(s"Received: Channel closed") *> ZIO.succeed(false)
     yield res.get
 
 object ZioChan2 extends ZIOAppDefault:
