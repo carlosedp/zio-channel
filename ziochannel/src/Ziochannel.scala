@@ -12,7 +12,7 @@ import zio.*
  * @tparam A
  *   the type of messages in the queue
  */
-class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Boolean]):
+class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Boolean], capacity: Int):
 
   /**
    * Sends a message to the channel and blocks until the message is received by
@@ -27,7 +27,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Bo
     for
       promise <- Promise.make[Nothing, A]
       _       <- queue.offer((promise, a))
-      _       <- promise.await
+      _       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.unit)
     yield ()
 
   /**
@@ -112,6 +112,6 @@ object Channel:
     for
       queue <- Queue.bounded[(Promise[Nothing, A], A)](capacity)
       done  <- Promise.make[Nothing, Boolean]
-    yield new Channel(queue, done)
+    yield new Channel(queue, done, capacity)
 
   def make[A]: UIO[Channel[A]] = make(1)
