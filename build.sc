@@ -13,9 +13,11 @@ trait Base extends ScalaModule {
   )
 
   object test extends Tests {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"dev.zio::zio:${versions.zio}",
+    def ivyDeps = Agg(
+      ivy"dev.zio::zio-test:${versions.zio}",
+      ivy"dev.zio::zio-test-sbt:${versions.zio}",
     )
+    def testFramework = T("zio.test.sbt.ZTestFramework")
   }
 }
 

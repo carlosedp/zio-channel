@@ -73,7 +73,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
       _ <- queue.shutdown
     yield Closed
 
-/** A sealed trait representing a closed channel. */
+/** A sealed trait representing the channel status. */
 sealed trait ChannelStatus
 
 /** Object representing a closed channel. */
