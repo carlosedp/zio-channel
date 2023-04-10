@@ -12,7 +12,7 @@ import zio.*
  * @tparam A
  *   the type of messages in the queue
  */
-class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Boolean], capacity: Int):
+class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStatus, Boolean], capacity: Int):
 
   /**
    * Sends a message to the channel and blocks until the message is received by
@@ -23,11 +23,11 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Bo
    * @return
    *   a `UIO` representing the completion of the send operation
    */
-  def send(a: A): UIO[Unit] =
+  def send(a: A): ZIO[Any, ChannelStatus, Unit] =
     for
-      promise <- Promise.make[Nothing, A]
+      promise <- Promise.make[ChannelStatus, A]
       _       <- queue.offer((promise, a))
-      _       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.unit)
+      a       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.succeed(a))
     yield ()
 
   /**
@@ -38,7 +38,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Bo
    *   a `UIO` containing an `Either` with a `Right[message]` or a
    *   `Left[Closed]`
    */
-  def receive: ZIO[Any, Nothing, Either[Closed, A]] =
+  def receive: ZIO[Any, Nothing, Either[ChannelStatus, A]] =
     for
       tuple       <- queue.take
       (promise, a) = tuple
@@ -54,7 +54,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Bo
    * @return
    *   a `Either[Closed, Int]` representing the current status of the channel
    */
-  def status: UIO[Either[Closed, Int]] =
+  def status: UIO[Either[ChannelStatus, Int]] =
     for
       isDone <- done.isDone
       size   <- queue.size
@@ -67,17 +67,17 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[Nothing, Bo
    * @return
    *   a `UIO[Closed]` representing the completion of the close operation
    */
-  def close: UIO[Closed] =
+  def close: UIO[ChannelStatus] =
     for
       _ <- done.succeed(true)
       _ <- queue.shutdown
     yield Closed
 
 /** A sealed trait representing a closed channel. */
-sealed trait Closed
+sealed trait ChannelStatus
 
 /** Object representing a closed channel. */
-object Closed extends Closed
+object Closed extends ChannelStatus
 
 /**
  * An implementation of a thread-safe, blocking channel. This is based on the
@@ -93,13 +93,13 @@ object Closed extends Closed
  *   the type of messages in the queue
  */
 object Channel:
-  private type ChanQueue[A] = Queue[(Promise[Nothing, A], A)]
+  private type ChanQueue[A] = Queue[(Promise[ChannelStatus, A], A)]
 
   /**
    * Creates a new instance of the `Channel` object. The `capacity` parameter
    * determines the maximum number of messages that can be stored in the queue.
    * If `capacity` is 0, the channel will block senders until message is
-   * received.
+   * received and block receivers until a message is sent.
    *
    * @tparam A
    *   the type of messages in the queue
@@ -110,8 +110,18 @@ object Channel:
    */
   def make[A](capacity: Int): UIO[Channel[A]] =
     for
-      queue <- Queue.bounded[(Promise[Nothing, A], A)](capacity)
-      done  <- Promise.make[Nothing, Boolean]
-    yield new Channel(queue, done, capacity)
+      queue <- Queue.bounded[(Promise[ChannelStatus, A], A)](capacity + 1)
+      done  <- Promise.make[ChannelStatus, Boolean]
+    yield new Channel(queue, done, capacity + 1)
 
-  def make[A]: UIO[Channel[A]] = make(1)
+  /**
+   * Creates a new instance of the `Channel` with `capacity` 0 which will block
+   * senders until message is received and block receivers until a message is
+   * sent.
+   *
+   * @tparam A
+   *   the type of messages in the queue
+   * @return
+   *   a new instance of the `Channel` object
+   */
+  def make[A]: UIO[Channel[A]] = make(0)

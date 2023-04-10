@@ -10,25 +10,25 @@ import zio.*
 import ziochannel.*
 import java.io.IOException
 
-def messageSender(channel: Channel[String]): ZIO[Any, IOException, Unit] =
+def messageSender(channel: Channel[String]): ZIO[Any, ChannelStatus, Unit] =
   for
     _ <- channel.send("Hello")
-    _ <- Console.printLine("Sender 1 unblocked")
+    _ <- Console.printLine("Sender 1 unblocked").ignore
     _ <- channel.send("World")
-    _ <- Console.printLine("Sender 1 unblocked again")
+    _ <- Console.printLine("Sender 1 unblocked again").ignore
     _ <- channel.close
-    _ <- Console.printLine("Sender 1 closed channel")
+    _ <- Console.printLine("Sender 1 closed channel").ignore
   yield ()
 
-def messageReceiver(channel: Channel[String]): ZIO[Any, IOException, Unit] =
+def messageReceiver(channel: Channel[String]): ZIO[Any, Nothing, Unit] =
   foreverWhile:
     for
       // I'll keep receiving messages until the channel is closed
       res <- ZIO.whenCaseZIO(channel.receive):
                case Right(data) =>
-                 Console.printLine(s"Received: $data") *> ZIO.succeed(true)
+                 Console.printLine(s"Received: $data").ignore *> ZIO.succeed(true)
                case Left(Closed) =>
-                 Console.printLine(s"Received: Channel closed") *> ZIO.succeed(false)
+                 Console.printLine(s"Received: Channel closed").ignore *> ZIO.succeed(false)
     yield res.get
 
 object ZioChan2 extends ZIOAppDefault:
