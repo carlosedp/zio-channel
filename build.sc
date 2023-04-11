@@ -14,19 +14,15 @@ object versions {
   val scoverage = "2.0.8"
 }
 
-trait Base extends ScalaModule {
+trait Base extends ScalaModule with ScalafmtModule {
   def ivyDeps = Agg(
     ivy"dev.zio::zio:${versions.zio}",
   )
   def scalacOptions = Seq("-source:future")
   def scalaVersion  = versions.scala
 }
-object ziochannel
-  extends Base
-  with ScalafmtModule
-  with ScoverageModule
-  with CiReleaseModule {
-  def scoverageVersion = versions.scoverage
+
+trait Publish extends CiReleaseModule {
   def pomSettings = PomSettings(
     description = "Ziochannel is a Go-like channel implementation for ZIO",
     organization = "com.carlosedp",
@@ -38,6 +34,13 @@ object ziochannel
     ),
   )
   override def sonatypeHost = Some(SonatypeHost.s01)
+}
+
+object ziochannel
+  extends Base
+  with ScoverageModule
+  with Publish {
+  def scoverageVersion = versions.scoverage
 
   object test extends Tests with ScoverageTests {
     def ivyDeps = Agg(
@@ -56,6 +59,7 @@ object scoverage extends ScoverageReport {
   override def scalaVersion     = versions.scala
   override def scoverageVersion = versions.scoverage
 }
+
 // -----------------------------------------------------------------------------
 // Command Aliases
 // -----------------------------------------------------------------------------
