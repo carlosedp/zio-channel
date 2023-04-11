@@ -9,29 +9,23 @@ import $ivy.`io.chris-kipp::mill-ci-release::0.1.5`
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
 
 object versions {
-  val scala3        = "3.3.0-RC3"
-  val scala213      = "2.13.10"
-  val scala212      = "2.12.17"
-  val zio           = "2.0.11"
-  val scoverage     = "2.0.8"
-  val scalaVersions = Seq(scala212, scala213, scala3)
+  val scala     = "3.3.0-RC3"
+  val zio       = "2.0.11"
+  val scoverage = "2.0.8"
 }
+
 trait Base extends ScalaModule {
-  def scalaVersion  = versions.scala3
-  def scalacOptions = super.scalacOptions() ++ Seq("-source:future")
-  def ivyDeps = super.ivyDeps() ++ Seq(
+  def ivyDeps = Agg(
     ivy"dev.zio::zio:${versions.zio}",
   )
+  def scalacOptions = Seq("-source:future")
+  def scalaVersion  = versions.scala
 }
-
-object ziochannel extends Cross[ZioChannelModule](versions.scalaVersions: _*)
-
-class ZioChannelModule(crossVersion: String)
+object ziochannel
   extends Base
   with ScalafmtModule
   with ScoverageModule
   with CiReleaseModule {
-  def millSourcePath   = super.millSourcePath / os.up
   def scoverageVersion = versions.scoverage
   def pomSettings = PomSettings(
     description = "Ziochannel is a Go-like channel implementation for ZIO",
@@ -55,11 +49,11 @@ class ZioChannelModule(crossVersion: String)
 }
 
 object examples extends Base {
-  def moduleDeps = Seq(ziochannel(versions.scala3))
+  def moduleDeps = Seq(ziochannel)
 }
 
 object scoverage extends ScoverageReport {
-  override def scalaVersion     = versions.scala3
+  override def scalaVersion     = versions.scala
   override def scoverageVersion = versions.scoverage
 }
 // -----------------------------------------------------------------------------
@@ -72,7 +66,7 @@ val aliases: Map[String, Seq[String]] = Map(
   "checkfmt" -> Seq("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources"),
   "deps"     -> Seq("mill.scalalib.Dependency/showUpdates"),
   "pub"      -> Seq("io.kipp.mill.ci.release.ReleaseModule/publishAll"),
-  "publocal" -> Seq("ziochannel.__.publishLocal"),
+  "publocal" -> Seq("ziochannel.publishLocal"),
   "testall"  -> Seq("__.test"),
   "coverage" -> Seq(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll"),
 )
