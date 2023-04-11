@@ -7,7 +7,7 @@
 import zio.*
 import ziochannel.*
 
-object ZioChan1 extends ZIOAppDefault:
+object ZioChan2 extends ZIOAppDefault:
   val run =
     for
       channel <- Channel.make[String](2)

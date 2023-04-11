@@ -1,4 +1,4 @@
-// Run with `scala-cli sample2.scala`
+// Run with `scala-cli sample3.scala`
 
 //> using scala "3.3.0-RC3"
 //> using lib "dev.zio::zio:2.0.11"
@@ -31,7 +31,7 @@ def messageReceiver(channel: Channel[String]): ZIO[Any, Nothing, Unit] =
                  Console.printLine(s"Received: Channel closed").ignore *> ZIO.succeed(false)
     yield res.get
 
-object ZioChan2 extends ZIOAppDefault:
+object ZioChan3 extends ZIOAppDefault:
   val run =
     for
       channel <- Channel.make[String]
