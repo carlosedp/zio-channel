@@ -2,7 +2,7 @@ import zio.*
 import zio.test.*
 import zio.test.Assertion.*
 
-import ziochannel.*
+import zio.channel.*
 
 object HelpersSpec extends ZIOSpecDefault:
 
@@ -16,5 +16,5 @@ object HelpersSpec extends ZIOSpecDefault:
                        r <- ZIO.succeed(false)
                      yield r
           yield assertCompletes,
-      ),
+      )
     )

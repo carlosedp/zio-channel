@@ -1,4 +1,4 @@
-package ziochannel
+package zio.channel
 
 import zio.*
 

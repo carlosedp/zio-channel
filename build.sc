@@ -9,14 +9,14 @@ import $ivy.`io.chris-kipp::mill-ci-release::0.1.5`
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
 
 object versions {
-  val scala     = "3.3.0-RC3"
-  val zio       = "2.0.11"
+  val scala     = "3.3.0-RC4"
+  val zio       = "2.0.13"
   val scoverage = "2.0.8"
 }
 
 trait Base extends ScalaModule with ScalafmtModule {
   def ivyDeps = Agg(
-    ivy"dev.zio::zio:${versions.zio}",
+    ivy"dev.zio::zio:${versions.zio}"
   )
   def scalacOptions = Seq("-source:future")
   def scalaVersion  = versions.scala
@@ -24,19 +24,19 @@ trait Base extends ScalaModule with ScalafmtModule {
 
 trait Publish extends CiReleaseModule {
   def pomSettings = PomSettings(
-    description = "Ziochannel is a Go-like channel implementation for ZIO",
+    description = "Zio-channel is a Go-like channel implementation for ZIO",
     organization = "com.carlosedp",
-    url = "https://github.com/carlosedp/ziochannel",
+    url = "https://github.com/carlosedp/zio-channel",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("carlosedp", "ziochannel"),
+    versionControl = VersionControl.github("carlosedp", "zio-channel"),
     developers = Seq(
-      Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp"),
+      Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp")
     ),
   )
   override def sonatypeHost = Some(SonatypeHost.s01)
 }
 
-object ziochannel
+object `zio-channel`
   extends Base
   with ScoverageModule
   with Publish {
@@ -52,7 +52,7 @@ object ziochannel
 }
 
 object examples extends Base {
-  def moduleDeps = Seq(ziochannel)
+  def moduleDeps = Seq(`zio-channel`)
 }
 
 object scoverage extends ScoverageReport {

@@ -2,7 +2,7 @@ import zio.*
 import zio.test.*
 import zio.test.Assertion.*
 
-import ziochannel.*
+import zio.channel.*
 
 object ChannelSpec extends ZIOSpecDefault:
 
