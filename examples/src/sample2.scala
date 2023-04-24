@@ -1,11 +1,11 @@
-//> using scala "3.3.0-RC3"
-//> using lib "dev.zio::zio:2.0.11"
+//> using scala "3.3.0-RC4"
+//> using lib "dev.zio::zio:2.0.13"
 
-//> using file "../../ziochannel/src/Ziochannel.scala"
-//> using file "../../ziochannel/src/Helpers.scala"
+//> using file "../../zio-channel/src/Ziochannel.scala"
+//> using file "../../zio-channel/src/Helpers.scala"
 
 import zio.*
-import ziochannel.*
+import zio.channel.*
 
 object ZioChan2 extends ZIOAppDefault:
   val run =

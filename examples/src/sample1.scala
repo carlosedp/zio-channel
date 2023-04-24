@@ -1,22 +1,24 @@
-//> using scala "3.3.0-RC3"
-//> using lib "dev.zio::zio:2.0.11"
+//> using scala "3.3.0-RC4"
+//> using lib "dev.zio::zio:2.0.13"
 
-//> using file "../../ziochannel/src/Ziochannel.scala"
-//> using file "../../ziochannel/src/Helpers.scala"
+//> using file "../../zio-channel/src/Ziochannel.scala"
+//> using file "../../zio-channel/src/Helpers.scala"
 
 import zio.*
-import ziochannel.*
+import zio.channel.*
 
 object ZioChan1 extends ZIOAppDefault:
   val run =
     for
       chan <- Channel.make[Int]
-      _    <- Console.printLine("Sender 1 will send 1")
-      f1   <- chan.receive.tap(i => Console.printLine(s"Receiver 1 received $i")).fork
-      _    <- chan.send(1)
-      _ <- Console.printLine(
-             "Sender 1 will send 2",
-           ) // <- Main fiber will block here if capacity is 1 or there is only one receiver
+      f1 <-
+        (chan.receive.tap(i =>
+          Console.printLine(s"Receiver 1 received $i and app will block now requiring Ctrl-C")
+        ) *> Console.printLine("Receiver resumed")).fork
+      _ <- Console.printLine("Sender 1 will send 1")
+      _ <- chan.send(1)
+      _ <- Console.printLine("Sender 1 will send 2")
+      // <- Main fiber will block here on purpose requiring a Ctrl-C to stop the program
       _ <- chan.send(2)
       _ <- Console.printLine("Sender 1 will send 3")
       _ <- chan.send(3)
