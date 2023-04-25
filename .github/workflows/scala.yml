@@ -124,11 +124,8 @@ jobs:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
 
-      - name: Create Release for Tag
+      - name: Publish release
         id: release_tag
-        uses: Akryum/release-tag@conventional
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: eloquent/github-release-action@v3
         with:
-          tag_name: ${{ github.ref }}
-          preset: angular # Use conventional-changelog preset
+          generateReleaseNotes: "true"
