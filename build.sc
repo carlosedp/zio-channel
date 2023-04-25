@@ -1,25 +1,21 @@
-import mill._
-import mill.scalalib._
-import mill.scalalib.publish._
+import mill._, mill.scalalib._, mill.scalalib.publish._
+import mill.scalajslib._, mill.scalajslib.api._
+import mill.scalanativelib._, mill.scalanativelib.api._
 import scalafmt._
 
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
 import mill.contrib.scoverage.{ScoverageModule, ScoverageReport}
 import $ivy.`io.chris-kipp::mill-ci-release::0.1.5`
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
+import $ivy.`com.github.lolgab::mill-crossplatform::0.1.5`
+import com.github.lolgab.mill.crossplatform._
 
 object versions {
-  val scala     = "3.3.0-RC4"
-  val zio       = "2.0.13"
-  val scoverage = "2.0.8"
-}
-
-trait Base extends ScalaModule with ScalafmtModule {
-  def ivyDeps = Agg(
-    ivy"dev.zio::zio:${versions.zio}"
-  )
-  def scalacOptions = Seq("-source:future")
-  def scalaVersion  = versions.scala
+  val scala       = "3.3.0-RC4"
+  val scalajs     = "1.13.0"
+  val scalanative = "0.4.12"
+  val zio         = "2.0.13"
+  val scoverage   = "2.0.8"
 }
 
 trait Publish extends CiReleaseModule {
@@ -36,23 +32,49 @@ trait Publish extends CiReleaseModule {
   override def sonatypeHost = Some(SonatypeHost.s01)
 }
 
-object `zio-channel`
-  extends Base
-  with ScoverageModule
-  with Publish {
-  def scoverageVersion = versions.scoverage
+trait Common extends ScalaModule {
+  def scalaVersion = versions.scala
+  def ivyDeps = Agg(
+    ivy"dev.zio::zio:${versions.zio}"
+  )
+  def scalacOptions = Seq("-source:future")
+}
 
-  object test extends Tests with ScoverageTests {
-    def ivyDeps = Agg(
-      ivy"dev.zio::zio-test:${versions.zio}",
-      ivy"dev.zio::zio-test-sbt:${versions.zio}",
-    )
-    def testFramework = T("zio.test.sbt.ZTestFramework")
+trait CommonTests extends TestModule {
+  def ivyDeps = Agg(
+    ivy"dev.zio::zio-test::${versions.zio}",
+    ivy"dev.zio::zio-test-sbt::${versions.zio}",
+  )
+  override def testFramework = T("zio.test.sbt.ZTestFramework")
+}
+
+object `zio-channel` extends CrossPlatform {
+  trait Shared extends CrossPlatformScalaModule
+    with Common
+    with ScalafmtModule
+    with Publish {
+    // common settings here
+  }
+  object jvm extends Shared with ScoverageModule {
+    // jvm specific settings here
+    def scoverageVersion = versions.scoverage
+    object test extends Tests with CommonTests with ScoverageTests
+  }
+  object js extends Shared with ScalaJSModule {
+    def scalaJSVersion = versions.scalajs
+    // js specific settings here
+    object test extends Tests with CommonTests
+  }
+  object native extends Shared with ScalaNativeModule {
+    // native specific settings here
+    def scalaNativeVersion = versions.scalanative
+    // ScalaNative tests are not supported on zio-test yet
+    // object test extends Tests with CommonTests
   }
 }
 
-object examples extends Base {
-  def moduleDeps = Seq(`zio-channel`)
+object examples extends Common {
+  def moduleDeps = Seq(`zio-channel`.jvm)
 }
 
 object scoverage extends ScoverageReport {
