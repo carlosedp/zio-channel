@@ -69,6 +69,8 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    */
   def close: UIO[ChannelStatus] =
     for
+      q <- queue.takeAll
+      _ <- ZIO.foreach(q) { case (promise, a) => promise.succeed(a) }
       _ <- done.succeed(true)
       _ <- queue.shutdown
     yield Closed

@@ -123,28 +123,22 @@ object ChannelSpec extends ZIOSpecDefault:
         ,
         test("sending fibers are unblocked when channel is closed"):
           for
-            chan <- Channel.make[Int]
-            f1   <- chan.send(1).fork
-            f2   <- chan.send(1).fork
-            _    <- Live.live(ZIO.sleep(100.millis))
-            // _               <- ZIO.debug(s"Before close")
-            chanStatus      <- chan.status
+            chan            <- Channel.make[Int]
+            f1              <- chan.send(1).fork
+            f2              <- chan.send(1).fork
+            _               <- Live.live(ZIO.sleep(100.millis))
+            chanStatusBef   <- chan.status
             fiber1StatusBef <- f1.status
             fiber2StatusBef <- f2.status
             _               <- chan.close
             _               <- Live.live(ZIO.sleep(100.millis))
-            // _               <- ZIO.debug(s"After close")
-            fiber1Status <- f1.status
-            fiber2Status <- f2.status
-          // _               <- ZIO.debug("Fiber 1", fiber1StatusBef)
-          // _               <- ZIO.debug("Fiber 2", fiber2StatusBef)
-          // _               <- ZIO.debug("Fiber 1", fiber1Status)
-          // _               <- ZIO.debug("Fiber 2", fiber2Status)
+            fiber1Status    <- f1.status
+            fiber2Status    <- f2.status
           yield assertTrue(
-            chanStatus == Right(2),
+            chanStatusBef == Right(2),
             fiber1StatusBef.isSuspended == true,
             fiber2StatusBef.isSuspended == true,
-            // fiber1Status.isDone == true,
+            fiber1Status.isSuspended == false,
             fiber2Status.isSuspended == false,
           ),
       ),
