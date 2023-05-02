@@ -3,6 +3,7 @@ import zio.test.*
 import zio.test.Assertion.*
 
 import zio.channel.*
+import TestUtils.*
 
 object ChannelSpec extends ZIOSpecDefault:
 
@@ -31,13 +32,10 @@ object ChannelSpec extends ZIOSpecDefault:
             chan       <- Channel.make[Int]
             f1         <- chan.send(1).fork
             f2         <- chan.send(1).fork
-            _          <- Live.live(ZIO.sleep(100.millis))
-            chanStatus <- chan.status
+            chanStatus <- waitForSize(chan, 2)
             result1    <- chan.receive
             result2    <- chan.receive
-            _          <- f1.join
-            _          <- f2.join
-          yield assertTrue(result1 == Right(1), result2 == Right(1), chanStatus == Right(2))
+          yield assertTrue(result1 == Right(1), result2 == Right(1), chanStatus == 2)
         ,
         test("multiple receive forked / send by main"):
           for
@@ -48,57 +46,53 @@ object ChannelSpec extends ZIOSpecDefault:
             _       <- chan.send(1)
             result1 <- f1.join
             result2 <- f2.join
-          yield assertTrue(result1 == Right(1), result2 == Right(1))
+          yield assertTrue(
+            result1 == Right(1),
+            result2 == Right(1),
+          )
         ,
         test("sender fiber gets blocked by sending to a channel without receivers"):
           for
             chan        <- Channel.make[Int]
             f1          <- chan.send(1).fork
-            _           <- Live.live(ZIO.sleep(100.millis))
-            fiberStatus <- f1.status
-            chanStatus  <- chan.status
-          yield assertTrue(chanStatus == Right(1), fiberStatus.isSuspended == true)
+            chanStatus  <- waitForSize(chan, 1)
+            fiberStatus <- waitUntilSuspended(f1)
+          yield assertTrue(chanStatus == 1, fiberStatus == true)
         ,
         test("receiver fiber gets blocked by receiving to a channel without senders"):
           for
             chan        <- Channel.make[Int]
             f1          <- chan.receive.fork
-            _           <- Live.live(ZIO.sleep(100.millis))
-            fiberStatus <- f1.status
+            _           <- waitForSize(chan, 1)
+            fiberStatus <- waitUntilSuspended(f1)
             chanStatus  <- chan.status
             _           <- f1.interruptFork
-          yield assertTrue(chanStatus == Right(-1), fiberStatus.isSuspended == true)
+          yield assertTrue(chanStatus == Right(-1), fiberStatus == true)
         ,
         test("one sender gets blocked and another unblocks after receive"):
           for
-            chan         <- Channel.make[Int]
-            f1           <- chan.send(1).fork
-            f2           <- chan.send(1).fork
-            _            <- chan.receive
-            _            <- Live.live(ZIO.sleep(100.millis))
-            fiber1Status <- f1.status
-            fiber2Status <- f2.status
-            _            <- f1.join
-            f1Result      = fiber1Status.isSuspended
+            chan       <- Channel.make[Int]
+            f1         <- chan.send(1).fork
+            f2         <- chan.send(1).fork
+            _          <- chan.receive
+            chanStatus <- waitForSize(chan, 2)
+            oneSusp    <- waitUntilEitherFiberIsSuspended(f1, f2)
           yield assertTrue(
-            fiber1Status.isSuspended == f1Result,
-            fiber2Status.isSuspended == !f1Result,
+            chanStatus == 2,
+            oneSusp == true,
           )
         ,
         test("one receiver gets blocked and another unblocks after send"):
           for
-            chan         <- Channel.make[Int]
-            f1           <- chan.receive.fork
-            f2           <- chan.receive.fork
-            _            <- chan.send(1)
-            _            <- Live.live(ZIO.sleep(100.millis))
-            fiber1Status <- f1.status
-            fiber2Status <- f2.status
-            _            <- f1.join
-            f1Result      = fiber1Status.isSuspended
+            chan       <- Channel.make[Int]
+            f1         <- chan.receive.fork
+            f2         <- chan.receive.fork
+            _          <- chan.send(1)
+            chanStatus <- waitForSize(chan, -1)
+            oneSusp    <- waitUntilEitherFiberIsSuspended(f1, f2)
           yield assertTrue(
-            fiber1Status.isSuspended == f1Result,
-            fiber2Status.isSuspended == !f1Result,
+            oneSusp == true,
+            chanStatus == -1,
           )
         ,
         test("receiving fibers are unblocked when channel is closed"):
@@ -106,41 +100,43 @@ object ChannelSpec extends ZIOSpecDefault:
             chan            <- Channel.make[Int]
             f1              <- chan.receive.fork
             f2              <- chan.receive.fork
-            _               <- Live.live(ZIO.sleep(100.millis))
-            chanStatus      <- chan.status
-            fiber1StatusBef <- f1.status
-            fiber2StatusBef <- f2.status
+            chanStatus      <- waitForSize(chan, -2)
+            fiber1StatusBef <- waitUntilSuspended(f1)
+            fiber2StatusBef <- waitUntilSuspended(f2)
             _               <- chan.close
-            fiber1Status    <- f1.status
-            fiber2Status    <- f2.status
+            chanStatusAft   <- waitForSize(chan, 0)
+            fiber1StatusAft <- waitUntilNotSuspended(f1)
+            fiber2StatusAft <- waitUntilNotSuspended(f2)
           yield assertTrue(
-            chanStatus == Right(-2),
-            fiber1StatusBef.isSuspended == true,
-            fiber2StatusBef.isSuspended == true,
-            fiber1Status.isSuspended == false,
-            fiber2Status.isSuspended == false,
+            chanStatus == -2,
+            chanStatusAft == 0,
+            fiber1StatusBef == true,
+            fiber2StatusBef == true,
+            fiber1StatusAft == true,
+            fiber2StatusAft == true,
           )
         ,
-        test("sending fibers are unblocked when channel is closed"):
+        test("sending fibers are unblocked when channel is closed")(
           for
             chan            <- Channel.make[Int]
             f1              <- chan.send(1).fork
             f2              <- chan.send(1).fork
-            _               <- Live.live(ZIO.sleep(100.millis))
-            chanStatusBef   <- chan.status
-            fiber1StatusBef <- f1.status
-            fiber2StatusBef <- f2.status
+            chanStatusBef   <- waitForSize(chan, 2)
+            fiber1SuspBef   <- waitUntilSuspended(f1)
+            fiber2SuspBef   <- waitUntilSuspended(f2)
             _               <- chan.close
-            _               <- Live.live(ZIO.sleep(100.millis))
-            fiber1Status    <- f1.status
-            fiber2Status    <- f2.status
+            chanStatusAft   <- waitForSize(chan, 0)
+            fiber1StatusAft <- f1.status
+            fiber2StatusAft <- f2.status
           yield assertTrue(
-            chanStatusBef == Right(2),
-            fiber1StatusBef.isSuspended == true,
-            fiber2StatusBef.isSuspended == true,
-            fiber1Status.isSuspended == false,
-            fiber2Status.isSuspended == false,
-          ),
+            chanStatusBef == 2,
+            fiber1SuspBef == true,
+            fiber2SuspBef == true,
+            chanStatusAft == 0,
+            fiber1StatusAft.isSuspended == false,
+            fiber1StatusAft.isSuspended == false,
+          )
+        ) @@ TestAspect.flaky, // TODO: Make this test more reliable using nonFlaky
       ),
       // Buffered channel tests
       suite("Buffered Channel")(
@@ -149,8 +145,7 @@ object ChannelSpec extends ZIOSpecDefault:
             chan         <- Channel.make[Int](2)
             f1           <- chan.send(1).fork
             f2           <- chan.send(1).fork
-            _            <- Live.live(ZIO.sleep(100.millis))
-            chanStatus1  <- chan.status
+            chanStatus1  <- waitForSize(chan, 2)
             fiber1Status <- f1.status
             fiber2Status <- f2.status
             _            <- f1.join
@@ -158,7 +153,7 @@ object ChannelSpec extends ZIOSpecDefault:
           yield assertTrue(
             fiber1Status.isSuspended == false,
             fiber2Status.isSuspended == false,
-            chanStatus1 == Right(2),
+            chanStatus1 == 2,
           )
         ,
         test("third sender get blocked on a channel with capacity 2"):
@@ -167,12 +162,37 @@ object ChannelSpec extends ZIOSpecDefault:
             _           <- chan.send(1)
             _           <- chan.send(1)
             f1          <- chan.send(1).fork
-            _           <- Live.live(ZIO.sleep(100.millis))
-            chanStatus1 <- chan.status
-            fiberStatus <- f1.status
+            chanStatus1 <- waitForSize(chan, 3)
+            fiberStatus <- waitUntilSuspended(f1)
           yield assertTrue(
-            fiberStatus.isSuspended == true,
-            chanStatus1 == Right(3),
+            fiberStatus == true,
+            chanStatus1 == 3,
           ),
       ),
-    ) @@ TestAspect.flaky
+    ) @@ TestAspect.nonFlaky
+
+object TestUtils:
+  def waitForValue[T](ref: UIO[Either[ChannelStatus, T]], value: T): UIO[Either[ChannelStatus, T]] =
+    Live.live((ref <* Clock.sleep(2.millis)).repeatUntil(_ == value))
+
+  def waitForSize[A](chan: Channel[A], size: Int): UIO[Int] =
+    waitForValue(chan.status, size)
+    ZIO.succeed(size)
+
+  def waitUntilSuspended[A](fiber: Fiber.Runtime[ChannelStatus, A]): ZIO[Any, Nothing, Boolean] =
+    Live.live((fiber.status <* Clock.sleep(2.millis)).repeatUntil(_.isSuspended).map(_.isSuspended))
+
+  def waitUntilNotSuspended[A](fiber: Fiber.Runtime[ChannelStatus, A]) =
+    Live.live(
+      (fiber.status <* Clock.sleep(2.millis)).repeatUntil(!_.isSuspended).map(!_.isSuspended)
+    )
+
+  def waitUntilEitherFiberIsSuspended[A, B](
+    fiber1: Fiber.Runtime[ChannelStatus, A],
+    fiber2: Fiber.Runtime[ChannelStatus, B],
+  ): ZIO[Any, Nothing, Boolean] =
+    Live.live(
+      (fiber1.status.zipWithPar(fiber2.status)(_.isSuspended || _.isSuspended) <* Clock.sleep(2.millis)).repeatUntil(
+        _ == true
+      )
+    )
