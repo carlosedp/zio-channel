@@ -8,7 +8,7 @@ The idea to create this came when I read Adam Warsky's [post](https://softwaremi
 
 Channels can be unbuffered, with only one position or buffered with N positions. Fibers sending or receiving to this channel block if it's an unbuffered channel or once the buffered channel becomes full.
 
-This is still a prototype with basic functionality to gather interest and ideas for improvements. Since this is a prototype, it's currently built only for Scala 3.3 on JVM. If there is interest, I can add other targets. I don't plan to support Scala 2.
+This is still a prototype with basic functionality to gather interest and ideas for improvements. The lib is currently built for Scala 3.3 on JVM, Scala Native and ScalaJs. I don't plan to support Scala 2.
 
 [![zio-channel Scala version support](https://index.scala-lang.org/carlosedp/zio-channel/zio-channel/latest-by-scala-version.svg?platform=jvm)](https://index.scala-lang.org/carlosedp/zio-channel/zio-channel)
 [![zio-channel Scala version support](https://index.scala-lang.org/carlosedp/zio-channel/zio-channel/latest-by-scala-version.svg?platform=native0.4)](https://index.scala-lang.org/carlosedp/zio-channel/zio-channel)
