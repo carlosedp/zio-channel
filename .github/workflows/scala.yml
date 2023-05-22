@@ -126,6 +126,6 @@ jobs:
 
       - name: Publish release
         id: release_tag
-        uses: eloquent/github-release-action@v3
+        uses: eloquent/github-release-action@v4
         with:
           generateReleaseNotes: "true"
