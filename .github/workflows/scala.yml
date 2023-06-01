@@ -136,8 +136,8 @@ jobs:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
 
-      - name: Publish release
+      - name: Create Release for Tag
         id: release_tag
-        uses: eloquent/github-release-action@v4
+        uses: ncipollo/release-action@v1
         with:
-          generateReleaseNotes: "true"
+          name: ${{ github.ref }}
