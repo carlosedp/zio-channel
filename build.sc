@@ -70,7 +70,6 @@ object `zio-channel` extends CrossPlatform {
   object native extends Shared with ScalaNativeModule {
     // native specific settings here
     def scalaNativeVersion = versions.scalanative
-    // ScalaNative tests are not supported on zio-test yet
     object test extends Tests with CommonTests
   }
 }
