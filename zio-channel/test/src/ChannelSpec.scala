@@ -1,6 +1,5 @@
 import zio.*
 import zio.test.*
-import zio.test.Assertion.*
 
 import zio.channel.*
 import TestUtils.*
@@ -170,29 +169,3 @@ object ChannelSpec extends ZIOSpecDefault:
           ),
       ),
     ) @@ TestAspect.nonFlaky
-
-object TestUtils:
-  def waitForValue[T](ref: UIO[Either[ChannelStatus, T]], value: T): UIO[Either[ChannelStatus, T]] =
-    Live.live((ref <* Clock.sleep(2.millis)).repeatUntil(_ == value))
-
-  def waitForSize[A](chan: Channel[A], size: Int): UIO[Int] =
-    waitForValue(chan.status, size)
-    ZIO.succeed(size)
-
-  def waitUntilSuspended[A](fiber: Fiber.Runtime[ChannelStatus, A]): ZIO[Any, Nothing, Boolean] =
-    Live.live((fiber.status <* Clock.sleep(2.millis)).repeatUntil(_.isSuspended).map(_.isSuspended))
-
-  def waitUntilNotSuspended[A](fiber: Fiber.Runtime[ChannelStatus, A]) =
-    Live.live(
-      (fiber.status <* Clock.sleep(2.millis)).repeatUntil(!_.isSuspended).map(!_.isSuspended)
-    )
-
-  def waitUntilEitherFiberIsSuspended[A, B](
-    fiber1: Fiber.Runtime[ChannelStatus, A],
-    fiber2: Fiber.Runtime[ChannelStatus, B],
-  ): ZIO[Any, Nothing, Boolean] =
-    Live.live(
-      (fiber1.status.zipWithPar(fiber2.status)(_.isSuspended || _.isSuspended) <* Clock.sleep(2.millis)).repeatUntil(
-        _ == true
-      )
-    )

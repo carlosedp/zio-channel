@@ -8,7 +8,6 @@
 
 import zio.*
 import zio.channel.*
-import java.io.IOException
 
 def messageSender(channel: Channel[String]): ZIO[Any, ChannelStatus, Unit] =
   for

@@ -27,7 +27,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
     for
       promise <- Promise.make[ChannelStatus, A]
       _       <- queue.offer((promise, a))
-      a       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.succeed(a))
+      _       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.succeed(a))
     yield ()
 
   /**
