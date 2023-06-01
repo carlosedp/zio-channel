@@ -40,3 +40,4 @@ index.scip
 /temporalite
 /config
 shared/resources/META-INF/native-image/.lock
+*.semanticdb

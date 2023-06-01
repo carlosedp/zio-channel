@@ -11,10 +11,10 @@ import $ivy.`com.github.lolgab::mill-crossplatform::0.1.5`
 import com.github.lolgab.mill.crossplatform._
 
 object versions {
-  val scala       = "3.3.0-RC4"
-  val scalajs     = "1.13.0"
+  val scala       = "3.3.0"
+  val scalajs     = "1.13.1"
   val scalanative = "0.4.12"
-  val zio         = "2.0.13"
+  val zio         = "2.0.14"
   val scoverage   = "2.0.8"
 }
 
@@ -34,10 +34,12 @@ trait Publish extends CiReleaseModule {
 
 trait Common extends ScalaModule {
   def scalaVersion = versions.scala
+  override def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard", "-source:future")
+  }
   def ivyDeps = Agg(
     ivy"dev.zio::zio:${versions.zio}"
   )
-  def scalacOptions = Seq("-source:future")
 }
 
 trait CommonTests extends TestModule {
@@ -69,7 +71,7 @@ object `zio-channel` extends CrossPlatform {
     // native specific settings here
     def scalaNativeVersion = versions.scalanative
     // ScalaNative tests are not supported on zio-test yet
-    // object test extends Tests with CommonTests
+    object test extends Tests with CommonTests
   }
 }
 
