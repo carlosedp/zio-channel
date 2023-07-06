@@ -38,11 +38,11 @@ jobs:
         id: coursier-cache
 
       - name: Check Formatting
-        run: ./mill run checkfmt
+        run: ./mill Alias/run checkfmt
         if: startsWith(matrix.jvm, '17')
 
       - name: Run tests for all versions
-        run: ./mill run testall
+        run: ./mill Alias/run testall
 
   code-coverage:
     needs: [test]
@@ -68,7 +68,7 @@ jobs:
         id: coursier-cache
 
       - name: Run code coverage
-        run: ./mill run coverage
+        run: ./mill Alias/run coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -98,7 +98,7 @@ jobs:
         id: coursier-cache
 
       - name: Publish
-        run: ./mill run pub
+        run: ./mill Alias/run pub
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
@@ -129,15 +129,15 @@ jobs:
         id: coursier-cache
 
       - name: Publish
-        run: ./mill run pub
+        run: ./mill Alias/run pub
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
 
-      - name: Create Release for Tag
-        id: release_tag
-        uses: ncipollo/release-action@v1
-        with:
-          name: ${{ github.ref }}
+      # - name: Create Release for Tag
+      #   id: release_tag
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     name: ${{ github.ref }}
