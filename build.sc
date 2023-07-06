@@ -8,6 +8,8 @@ import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
 import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
 import com.github.lolgab.mill.crossplatform._
+import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import com.goyeau.mill.scalafix.ScalafixModule
 import $ivy.`com.carlosedp::mill-aliases::0.2.1`
 import com.carlosedp.aliases._
 
@@ -54,6 +56,7 @@ object `zio-channel` extends CrossPlatform {
   trait Shared extends CrossPlatformScalaModule
     with Common
     with ScalafmtModule
+    with ScalafixModule
     with Publish {
     // common settings here
   }
@@ -86,11 +89,10 @@ object scoverage extends ScoverageReport {
 object MyAliases extends Aliases {
   def fmt      = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources")
   def checkfmt = alias("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources")
+  def lint     = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources", "__.fix")
   def deps     = alias("mill.scalalib.Dependency/showUpdates")
   def pub      = alias("io.kipp.mill.ci.release.ReleaseModule/publishAll")
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
-  def err      = alias("zio-channel.comp")
-  def err2     = alias("__.tes")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
 }

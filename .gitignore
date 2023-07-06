@@ -41,3 +41,4 @@ index.scip
 /config
 shared/resources/META-INF/native-image/.lock
 *.semanticdb
+.vscode
