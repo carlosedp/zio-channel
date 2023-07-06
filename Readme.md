@@ -36,9 +36,9 @@ libraryDependencies += "com.carlosedp" %% "zio-channel" % "<version>"
 Below is a simple example that creates a one-slot channel (unbuffered) where the forked receiver blocks waiting for a message in the channel and gets unblocked when the main fiber sends a message allowing it to use the value and continue. Save the file locally and run with [scala-cli](https://scala-cli.virtuslab.org/):
 
 ```scala
-//> using scala "3.3.0-RC4"
-//> using lib "dev.zio::zio:2.0.13"
-//> using lib "com.carlosedp::zio-channel:0.1.0"
+//> using scala "3.3.0"
+//> using lib "dev.zio::zio:2.0.15"
+//> using lib "com.carlosedp::zio-channel:0.3.0"
 import zio.*
 import zio.channel.*
 
@@ -68,4 +68,4 @@ There are some additional examples at [./examples/src/](./examples/src/) which c
 
 - [ ] Better error handling
 - [ ] Timeouts sending/receiving
-- [ ] Select from multiple channels
+- [ ] Receive from multiple channels (select)

@@ -1,10 +1,8 @@
 // Run with `scala-cli sample3.scala`
 
-//> using scala "3.3.0-RC4"
-//> using lib "dev.zio::zio:2.0.1"
-
-//> using file "../../zio-channel/src/Ziochannel.scala"
-//> using file "../../zio-channel/src/Helpers.scala"
+//> using scala "3.3.0"
+//> using lib "dev.zio::zio:2.0.15"
+//> using lib "com.carlosedp::zio-channel:0.3.0"
 
 import zio.*
 import zio.channel.*

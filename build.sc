@@ -1,20 +1,21 @@
-import mill._, mill.scalalib._, mill.scalalib.publish._
-import mill.scalajslib._, mill.scalajslib.api._
-import mill.scalanativelib._, mill.scalanativelib.api._
-import scalafmt._
+import mill._, scalalib._
+import scalafmt._, publish._
+import scalajslib._, scalanativelib._
 
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
-import mill.contrib.scoverage.{ScoverageModule, ScoverageReport}
-import $ivy.`io.chris-kipp::mill-ci-release::0.1.5`
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
+import mill.contrib.scoverage._
+import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
-import $ivy.`com.github.lolgab::mill-crossplatform::0.1.5`
+import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
 import com.github.lolgab.mill.crossplatform._
+import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+import com.carlosedp.aliases._
 
 object versions {
   val scala3      = "3.3.0"
-  val scalajs     = "1.13.1"
-  val scalanative = "0.4.12"
-  val zio         = "2.0.14"
+  val scalajs     = "1.13.2"
+  val scalanative = "0.4.14"
+  val zio         = "2.0.15"
   val scoverage   = "2.0.8"
 }
 
@@ -42,12 +43,11 @@ trait Common extends ScalaModule {
   )
 }
 
-trait CommonTests extends TestModule {
+trait CommonTests extends TestModule.ZioTest {
   def ivyDeps = Agg(
     ivy"dev.zio::zio-test::${versions.zio}",
     ivy"dev.zio::zio-test-sbt::${versions.zio}",
   )
-  override def testFramework = T("zio.test.sbt.ZTestFramework")
 }
 
 object `zio-channel` extends CrossPlatform {
@@ -60,17 +60,17 @@ object `zio-channel` extends CrossPlatform {
   object jvm extends Shared with ScoverageModule {
     // jvm specific settings here
     def scoverageVersion = versions.scoverage
-    object test extends Tests with CommonTests with ScoverageTests
+    object test extends ScalaTests with CommonTests with ScoverageTests
   }
   object js extends Shared with ScalaJSModule {
     def scalaJSVersion = versions.scalajs
     // js specific settings here
-    object test extends Tests with CommonTests
+    object test extends ScalaTests with CommonTests
   }
   object native extends Shared with ScalaNativeModule {
     // native specific settings here
     def scalaNativeVersion = versions.scalanative
-    object test extends Tests with CommonTests
+    object test extends ScalaTests with CommonTests
   }
 }
 
@@ -83,28 +83,14 @@ object scoverage extends ScoverageReport {
   override def scoverageVersion = versions.scoverage
 }
 
-// -----------------------------------------------------------------------------
-// Command Aliases
-// -----------------------------------------------------------------------------
-// Alias commands are run like `./mill run [alias]`
-// Define the alias as a map element containing the alias name and a Seq with the tasks to be executed
-val aliases: Map[String, Seq[String]] = Map(
-  "fmt"      -> Seq("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources"),
-  "checkfmt" -> Seq("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources"),
-  "deps"     -> Seq("mill.scalalib.Dependency/showUpdates"),
-  "pub"      -> Seq("io.kipp.mill.ci.release.ReleaseModule/publishAll"),
-  "publocal" -> Seq("ziochannel.publishLocal"),
-  "testall"  -> Seq("__.test"),
-  "coverage" -> Seq(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll"),
-)
-
-def run(ev: eval.Evaluator, alias: String = "") = T.command {
-  aliases.get(alias) match {
-    case Some(t) =>
-      mill.main.MainModule.evaluateTasks(ev, t.flatMap(x => Seq(x, "+")).flatMap(_.split("\\s+")).init, false)(identity)
-    case None =>
-      Console.err.println("Use './mill run [alias]'."); Console.out.println("Available aliases:")
-      aliases.foreach(x => Console.out.println(s"${x._1.padTo(15, ' ')} - Commands: (${x._2.mkString(", ")})"));
-      sys.exit(1)
-  }
+object MyAliases extends Aliases {
+  def fmt      = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources")
+  def checkfmt = alias("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources")
+  def deps     = alias("mill.scalalib.Dependency/showUpdates")
+  def pub      = alias("io.kipp.mill.ci.release.ReleaseModule/publishAll")
+  def publocal = alias("zio-channel.__.publishLocal")
+  def testall  = alias("__.test")
+  def err      = alias("zio-channel.comp")
+  def err2     = alias("__.tes")
+  def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
 }
