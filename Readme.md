@@ -38,7 +38,7 @@ Below is a simple example that creates a one-slot channel (unbuffered) where the
 ```scala
 //> using scala "3.3.0"
 //> using lib "dev.zio::zio:2.0.15"
-//> using lib "com.carlosedp::zio-channel:0.3.0"
+//> using lib "com.carlosedp::zio-channel:0.4.0"
 import zio.*
 import zio.channel.*
 
@@ -56,16 +56,10 @@ object ZioChanel extends ZIOAppDefault:
     yield ()
 ```
 
-Run it with `scala-cli ziochannel.scala`.
+Run it with `scala-cli examples/src/sample-readme.scala`.
 
 To create a multiple position(buffered) channel where the fibers doesn't block sending or receiving to it until full, use `chan <- Channel.make[Int](5)`.
 
 It's also possible to get the channel `status` checking the amount of messages waiting, positive for senders and negative for receivers and `close` a channel to remove all messages and unblock the waiting fibers.
 
 There are some additional examples at [./examples/src/](./examples/src/) which can be run with scala-cli.
-
-## Missing / Future features
-
-- [ ] Better error handling
-- [ ] Timeouts sending/receiving
-- [ ] Receive from multiple channels (select)

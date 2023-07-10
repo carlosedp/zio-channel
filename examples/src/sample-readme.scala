@@ -1,6 +1,6 @@
 //> using scala "3.3.0"
 //> using lib "dev.zio::zio:2.0.15"
-//> using lib "com.carlosedp::zio-channel:0.3.0"
+//> using lib "com.carlosedp::zio-channel:0.4.0"
 
 import zio.*
 import zio.channel.*
