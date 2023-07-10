@@ -23,7 +23,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    * @return
    *   a `UIO` representing the completion of the send operation
    */
-  def send(a: A): ZIO[Any, ChannelStatus, Unit] =
+  def send(a: A): IO[ChannelStatus, Unit] =
     for
       promise <- Promise.make[ChannelStatus, A]
       _       <- queue.offer((promise, a))
@@ -75,6 +75,9 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
 /** A sealed trait representing the channel status. */
 sealed trait ChannelStatus
 
+/** Object representing a open channel. */
+object Open extends ChannelStatus
+
 /** Object representing a closed channel. */
 object Closed extends ChannelStatus
 
@@ -124,3 +127,16 @@ object Channel:
    *   a new instance of the `Channel` object
    */
   def make[A]: UIO[Channel[A]] = make(0)
+
+  /**
+   * Select will take the first message from the first channel that is ready to
+   * be received. If no channels are ready, the effect will be blocked until a
+   * message is available.
+   *
+   * @param channels
+   *   the channels to select from
+   * @return
+   *   a `IO` returning a message or a ZIO with error`ChannelStatus`
+   */
+
+  def select[A](channels: Channel[A]*): IO[ChannelStatus, A] = ???
