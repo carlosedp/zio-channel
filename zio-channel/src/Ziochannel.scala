@@ -130,8 +130,10 @@ object Channel:
 
   /**
    * Select will take the first message from the first channel that is ready to
-   * be received. If no channels are ready, the effect will be blocked until a
-   * message is available.
+   * be received and return it leaving the other channels untouched and ready
+   * for their own receive operation or a subsequent select operation. If no
+   * channels are ready, the effect will be blocked until a message is
+   * available.
    *
    * @param channels
    *   the channels to select from
