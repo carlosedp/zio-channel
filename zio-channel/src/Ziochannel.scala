@@ -35,30 +35,27 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    * a message is available or the channel closes.
    *
    * @return
-   *   a `UIO` containing an `Either` with a `Right[message]` or a
-   *   `Left[Closed]`
+   *   a `IO` containing a message or fail with `ChannelStatus.Closed`
    */
-  def receive: ZIO[Any, Nothing, Either[ChannelStatus, A]] =
+  def receive: IO[ChannelStatus, A] =
     for
       tuple       <- queue.take
       (promise, a) = tuple
-      isDone      <- done.isDone
       _           <- promise.succeed(a)
-    yield if isDone then Left(Closed) else Right(a)
+    yield a
 
   /**
    * Returns the current status of the channel. If the channel is closed, the
-   * returned value will be `Left(Closed)`. Otherwise, the returned value will
-   * be `Right(size)`, where `size` is the number of messages in the queue.
+   * returned error will be `Closed`. Otherwise, the returned value will be an
+   * `Int` with the size, where `size` is the number of messages in the queue.
    *
    * @return
-   *   a `Either[Closed, Int]` representing the current status of the channel
+   *   an `Int` representing the current status of the channel
    */
-  def status: UIO[Either[ChannelStatus, Int]] =
+  def status: IO[ChannelStatus, Int] =
     for
-      isDone <- done.isDone
-      size   <- queue.size
-    yield if isDone then Left(Closed) else Right(size)
+      size <- queue.size
+    yield size
 
   /**
    * Closes the channel, removing any pending messages and unblocking all

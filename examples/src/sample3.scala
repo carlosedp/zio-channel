@@ -2,7 +2,11 @@
 
 //> using scala "3.3.0"
 //> using lib "dev.zio::zio:2.0.15"
-//> using lib "com.carlosedp::zio-channel:0.3.0"
+
+// //> using lib "com.carlosedp::zio-channel:0.4.0"
+// Uncomment line above and remove lines below to use the published zio-channel lib
+//> using file "../../zio-channel/src/Ziochannel.scala"
+//> using file "../../zio-channel/src/Helpers.scala"
 
 import zio.*
 import zio.channel.*
@@ -21,12 +25,9 @@ def messageReceiver(channel: Channel[String]): ZIO[Any, Nothing, Unit] =
   foreverWhile:
     for
       // I'll keep receiving messages until the channel is closed
-      res <- ZIO.whenCaseZIO(channel.receive):
-               case Right(data) =>
-                 Console.printLine(s"Received: $data").ignore *> ZIO.succeed(true)
-               case Left(Closed) =>
-                 Console.printLine(s"Received: Channel closed").ignore *> ZIO.succeed(false)
-    yield res.get
+      data <- channel.receive.catchAll(_ => ZIO.succeed(false))
+      res  <- Console.printLine(s"Received: $data").ignore *> ZIO.succeed(true)
+    yield res
 
 object ZioChan3 extends ZIOAppDefault:
   val run =

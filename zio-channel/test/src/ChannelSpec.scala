@@ -16,7 +16,7 @@ object ChannelSpec extends ZIOSpecDefault:
             f1     <- chan.send(1).fork
             result <- chan.receive
             _      <- f1.join
-          yield assertTrue(result == Right(1))
+          yield assertTrue(result == 1)
         ,
         test("receive forked / send by main"):
           for
@@ -24,7 +24,7 @@ object ChannelSpec extends ZIOSpecDefault:
             f1     <- chan.receive.fork
             _      <- chan.send(1)
             result <- f1.join
-          yield assertTrue(result == Right(1))
+          yield assertTrue(result == 1)
         ,
         test("multiple sends forked / receive by main"):
           for
@@ -34,7 +34,7 @@ object ChannelSpec extends ZIOSpecDefault:
             chanStatus <- waitForSize(chan, 2)
             result1    <- chan.receive
             result2    <- chan.receive
-          yield assertTrue(result1 == Right(1), result2 == Right(1), chanStatus == 2)
+          yield assertTrue(result1 == 1, result2 == 1, chanStatus == 2)
         ,
         test("multiple receive forked / send by main"):
           for
@@ -46,8 +46,8 @@ object ChannelSpec extends ZIOSpecDefault:
             result1 <- f1.join
             result2 <- f2.join
           yield assertTrue(
-            result1 == Right(1),
-            result2 == Right(1),
+            result1 == 1,
+            result2 == 1,
           )
         ,
         test("sender fiber gets blocked by sending to a channel without receivers"):
@@ -66,7 +66,7 @@ object ChannelSpec extends ZIOSpecDefault:
             fiberStatus <- waitUntilSuspended(f1)
             chanStatus  <- chan.status
             _           <- f1.interruptFork
-          yield assertTrue(chanStatus == Right(-1), fiberStatus == true)
+          yield assertTrue(chanStatus == -1, fiberStatus == true)
         ,
         test("one sender gets blocked and another unblocks after receive"):
           for

@@ -6,7 +6,7 @@ object TestUtils:
   val sleepTime = 2.millis
 
   // Wait for a channel to have a certain value
-  def waitForValue[T](ref: UIO[Either[ChannelStatus, T]], value: T): UIO[Either[ChannelStatus, T]] =
+  def waitForValue[T](ref: IO[ChannelStatus, T], value: T): IO[ChannelStatus, T] =
     Live.live((ref <* Clock.sleep(sleepTime)).repeatUntil(_ == value))
 
   // Wait for a channel to have a certain size
