@@ -223,7 +223,7 @@ object ChannelSpec extends ZIOSpecDefault:
             f1    <- Channel.select(chan1, chan2).fork
             s1    <- f1.join
           yield assertTrue(
-            s1 == 1
+            s1 == 1 || s1 == 2 // order is not guaranteed
           )
         ,
         test("select multiple messages between two channels"):
@@ -235,8 +235,8 @@ object ChannelSpec extends ZIOSpecDefault:
             s1    <- Channel.select(chan1, chan2)
             s2    <- Channel.select(chan1, chan2)
           yield assertTrue(
-            s1 == 1,
-            s2 == 2,
+            // order is not guaranteed so if s1 == 1, s2 == 2
+            s1 == 1 && s2 == 2 || s1 == 2 && s2 == 1
           )
         ,
         test("select multiple messages between two channels in different order"):
