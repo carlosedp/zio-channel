@@ -7,16 +7,20 @@ import zio.*
  *
  * @param queue
  *   the underlying queue used to store messages
+ * @param nonEmpty
+ *   a ref that allows us to wait for the possibility of a successful receive
  * @param done
  *   a promise that is completed when the channel is closed
+ * @param capacity
+ *   the capacity of the channel
  * @tparam A
  *   the type of messages in the queue
  */
 class Channel[A] private (
-  queue:        Channel.ChanQueue[A],
-  val nonEmpty: Ref[Promise[Nothing, Channel[A]]],
-  done:         Promise[ChannelStatus, Boolean],
-  capacity:     Int,
+  queue:    Channel.ChanQueue[A],
+  nonEmpty: Ref[Promise[Nothing, Channel[A]]],
+  done:     Promise[ChannelStatus, Boolean],
+  capacity: Int,
 ):
 
   /**
@@ -33,10 +37,10 @@ class Channel[A] private (
       promise <- Promise.make[ChannelStatus, Unit]
       _ <- ZIO.uninterruptibleMask { restore =>
              for
-               _ <- queue.offer((promise, a))
-               s <- queue.size
-               _ <- nonEmpty.get.flatMap(_.succeed(this)).when(s > 0)
-               _ <- restore(promise.await).when(s >= capacity)
+               _    <- queue.offer((promise, a))
+               size <- queue.size
+               _    <- nonEmpty.get.flatMap(_.succeed(this)).when(size > 0)
+               _    <- restore(promise.await).when(size >= capacity)
              yield ()
            }
     yield ()
@@ -53,9 +57,8 @@ class Channel[A] private (
       for
         tuple       <- restore(queue.take)
         (promise, a) = tuple
-        p           <- Promise.make[Nothing, Channel[A]]
-        s           <- queue.size
-        _           <- nonEmpty.set(p).when(s == 0)
+        size        <- queue.size
+        _           <- Promise.make[Nothing, Channel[A]].flatMap(nonEmpty.set).when(size == 0)
         _           <- promise.succeed(())
       yield a
     }
@@ -87,6 +90,9 @@ class Channel[A] private (
       _ <- done.succeed(true)
       _ <- queue.shutdown
     yield Closed
+
+  private def waitForNonEmpty: UIO[Channel[A]] =
+    nonEmpty.get.flatMap(_.await)
 
 /** A sealed trait representing the channel status. */
 sealed trait ChannelStatus
@@ -157,16 +163,6 @@ object Channel:
    * @return
    *   a `IO` returning a message or a ZIO with error`ChannelStatus`
    */
-
-  def waitForNonEmpty[A](c: Channel[A]): UIO[Channel[A]] =
-    for
-      p <- c.nonEmpty.get
-      _ <- p.await
-    yield c
-
   def select[A](channels: Channel[A]*): IO[ChannelStatus, A] =
-    val waits = channels.map(waitForNonEmpty)
-    for
-      c <- ZIO.raceAll(waits.head, waits.tail)
-      a <- c.receive
-    yield a
+    val waits = channels.map(_.waitForNonEmpty)
+    ZIO.raceAll(waits.head, waits.tail).flatMap(_.receive)
