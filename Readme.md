@@ -38,7 +38,7 @@ Below is a simple example that creates a one-slot channel (unbuffered) where the
 ```scala
 //> using scala "3.3.0"
 //> using lib "dev.zio::zio:2.0.15"
-//> using lib "com.carlosedp::zio-channel:0.4.0"
+//> using lib "com.carlosedp::zio-channel:0.5.0"
 import zio.*
 import zio.channel.*
 
