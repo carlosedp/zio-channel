@@ -7,12 +7,21 @@ import zio.*
  *
  * @param queue
  *   the underlying queue used to store messages
+ * @param nonEmpty
+ *   a ref that allows us to wait for the possibility of a successful receive
  * @param done
  *   a promise that is completed when the channel is closed
+ * @param capacity
+ *   the capacity of the channel
  * @tparam A
  *   the type of messages in the queue
  */
-class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStatus, Boolean], capacity: Int):
+class Channel[A] private (
+  queue:    Channel.ChanQueue[A],
+  nonEmpty: Ref[Promise[Nothing, Channel[A]]],
+  done:     Promise[ChannelStatus, Boolean],
+  capacity: Int,
+):
 
   /**
    * Sends a message to the channel and blocks until the message is received by
@@ -23,11 +32,17 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    * @return
    *   a `UIO` representing the completion of the send operation
    */
-  def send(a: A): ZIO[Any, ChannelStatus, Unit] =
+  def send(a: A): IO[ChannelStatus, Unit] =
     for
-      promise <- Promise.make[ChannelStatus, A]
-      _       <- queue.offer((promise, a))
-      _       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.succeed(a))
+      promise <- Promise.make[ChannelStatus, Unit]
+      _ <- ZIO.uninterruptibleMask { restore =>
+             for
+               _    <- queue.offer((promise, a))
+               size <- queue.size
+               _    <- nonEmpty.get.flatMap(_.succeed(this)).when(size > 0)
+               _    <- restore(promise.await).when(size >= capacity)
+             yield ()
+           }
     yield ()
 
   /**
@@ -38,11 +53,15 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    *   a `IO` containing a message or fail with `ChannelStatus.Closed`
    */
   def receive: IO[ChannelStatus, A] =
-    for
-      tuple       <- queue.take
-      (promise, a) = tuple
-      _           <- promise.succeed(a)
-    yield a
+    ZIO.uninterruptibleMask { restore =>
+      for
+        tuple       <- restore(queue.take)
+        (promise, a) = tuple
+        size        <- queue.size
+        _           <- Promise.make[Nothing, Channel[A]].flatMap(nonEmpty.set).when(size == 0)
+        _           <- promise.succeed(())
+      yield a
+    }
 
   /**
    * Returns the current status of the channel. If the channel is closed, the
@@ -67,13 +86,19 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
   def close: UIO[ChannelStatus] =
     for
       q <- queue.takeAll
-      _ <- ZIO.foreach(q) { case (promise, a) => promise.succeed(a) }
+      _ <- ZIO.foreach(q) { case (promise, a) => promise.succeed(()) }
       _ <- done.succeed(true)
       _ <- queue.shutdown
     yield Closed
 
+  private def waitForNonEmpty: UIO[Channel[A]] =
+    nonEmpty.get.flatMap(_.await)
+
 /** A sealed trait representing the channel status. */
 sealed trait ChannelStatus
+
+/** Object representing a open channel. */
+object Open extends ChannelStatus
 
 /** Object representing a closed channel. */
 object Closed extends ChannelStatus
@@ -92,7 +117,7 @@ object Closed extends ChannelStatus
  *   the type of messages in the queue
  */
 object Channel:
-  private type ChanQueue[A] = Queue[(Promise[ChannelStatus, A], A)]
+  private type ChanQueue[A] = Queue[(Promise[ChannelStatus, Unit], A)]
 
   /**
    * Creates a new instance of the `Channel` object. The `capacity` parameter
@@ -109,9 +134,10 @@ object Channel:
    */
   def make[A](capacity: Int): UIO[Channel[A]] =
     for
-      queue <- Queue.bounded[(Promise[ChannelStatus, A], A)](capacity + 1)
-      done  <- Promise.make[ChannelStatus, Boolean]
-    yield new Channel(queue, done, capacity + 1)
+      queue    <- Queue.bounded[(Promise[ChannelStatus, Unit], A)](capacity + 1)
+      nonEmpty <- Promise.make[Nothing, Channel[A]].flatMap(Ref.make)
+      done     <- Promise.make[ChannelStatus, Boolean]
+    yield new Channel(queue, nonEmpty, done, capacity + 1)
 
   /**
    * Creates a new instance of the `Channel` with `capacity` 0 which will block
@@ -124,3 +150,19 @@ object Channel:
    *   a new instance of the `Channel` object
    */
   def make[A]: UIO[Channel[A]] = make(0)
+
+  /**
+   * Select will take the first message from the first channel that is ready to
+   * be received and return it leaving the other channels untouched and ready
+   * for their own receive operation or a subsequent select operation. If no
+   * channels are ready, the effect will be blocked until a message is
+   * available.
+   *
+   * @param channels
+   *   the channels to select from
+   * @return
+   *   a `IO` returning a message or a ZIO with error`ChannelStatus`
+   */
+  def select[A](channels: Channel[A]*): IO[ChannelStatus, A] =
+    val waits = channels.map(_.waitForNonEmpty)
+    ZIO.raceAll(waits.head, waits.tail).flatMap(_.receive)

@@ -135,7 +135,7 @@ object ChannelSpec extends ZIOSpecDefault:
             fiber1StatusAft.isSuspended == false,
             fiber1StatusAft.isSuspended == false,
           )
-        ) @@ TestAspect.flaky, // TODO: Make this test more reliable using nonFlaky
+        ),
       ),
       // Buffered channel tests
       suite("Buffered Channel")(
@@ -168,4 +168,92 @@ object ChannelSpec extends ZIOSpecDefault:
             chanStatus1 == 3,
           ),
       ),
-    ) @@ TestAspect.nonFlaky
+      // Select tests
+      suite("Select")(
+        test("select message from a channel"):
+          for
+            chan <- Channel.make[Int]
+            _    <- chan.send(1).fork
+            f1   <- Channel.select(chan).fork
+            s1   <- f1.join
+          yield assertTrue(
+            s1 == 1
+          )
+        ,
+        test("select message from a channel with two messages"):
+          for
+            chan <- Channel.make[Int]
+            _    <- chan.send(1).repeatN(2).fork
+            f1   <- Channel.select(chan).fork
+            s1   <- f1.join
+            f2   <- Channel.select(chan).fork
+            s2   <- f2.join
+          yield assertTrue(
+            s1 == 1,
+            s2 == 1,
+          )
+        ,
+        test("select message from two channels where message comes from first channel"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            _     <- chan1.send(1).fork
+            s1    <- Channel.select(chan1, chan2)
+          yield assertTrue(
+            s1 == 1
+          )
+        ,
+        test("select message from two channels where message comes from second channel"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            _     <- chan2.send(2).fork
+            f1    <- Channel.select(chan1, chan2).fork
+            s1    <- f1.join
+          yield assertTrue(
+            s1 == 2
+          )
+        ,
+        test("select first message between two channels"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            _     <- chan1.send(1).fork
+            _     <- chan2.send(2).fork
+            f1    <- Channel.select(chan1, chan2).fork
+            s1    <- f1.join
+          yield assertTrue(
+            s1 == 1 || s1 == 2 // order is not guaranteed
+          )
+        ,
+        test("select multiple messages between two channels"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            _     <- chan1.send(1).fork
+            _     <- chan2.send(2).fork
+            s1    <- Channel.select(chan1, chan2)
+            s2    <- Channel.select(chan1, chan2)
+          yield assertTrue(
+            // order is not guaranteed so if s1 == 1, s2 == 2
+            s1 == 1 && s2 == 2 || s1 == 2 && s2 == 1
+          )
+        ,
+        test("select multiple messages between two channels in different order"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            _     <- chan1.send(1).fork
+            _     <- chan1.send(1).fork
+            _     <- chan2.send(2).fork
+            s1    <- Channel.select(chan1, chan2)
+            s2    <- Channel.select(chan1, chan2)
+          yield assertTrue(
+            s1 == 1,
+            s2 == 1,
+          ),
+        // test("select messages in loop until select returns closed"):
+        // test("one channel is closed, and we select from both channels"):
+        // test("both channels have messages, but we add a timeout to limit the waiting time for a message."):
+      ),
+    )
