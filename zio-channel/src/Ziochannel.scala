@@ -12,7 +12,12 @@ import zio.*
  * @tparam A
  *   the type of messages in the queue
  */
-class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStatus, Boolean], capacity: Int):
+class Channel[A] private (
+  queue:        Channel.ChanQueue[A],
+  val nonEmpty: Ref[Promise[Nothing, Channel[A]]],
+  done:         Promise[ChannelStatus, Boolean],
+  capacity:     Int,
+):
 
   /**
    * Sends a message to the channel and blocks until the message is received by
@@ -25,9 +30,15 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    */
   def send(a: A): IO[ChannelStatus, Unit] =
     for
-      promise <- Promise.make[ChannelStatus, A]
-      _       <- queue.offer((promise, a))
-      _       <- queue.size.flatMap(size => if size >= capacity then promise.await else ZIO.succeed(a))
+      promise <- Promise.make[ChannelStatus, Unit]
+      _ <- ZIO.uninterruptibleMask { restore =>
+             for
+               _ <- queue.offer((promise, a))
+               s <- queue.size
+               _ <- nonEmpty.get.flatMap(_.succeed(this)).when(s > 0)
+               _ <- restore(promise.await).when(s >= capacity)
+             yield ()
+           }
     yield ()
 
   /**
@@ -38,11 +49,16 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
    *   a `IO` containing a message or fail with `ChannelStatus.Closed`
    */
   def receive: IO[ChannelStatus, A] =
-    for
-      tuple       <- queue.take
-      (promise, a) = tuple
-      _           <- promise.succeed(a)
-    yield a
+    ZIO.uninterruptibleMask { restore =>
+      for
+        tuple       <- restore(queue.take)
+        (promise, a) = tuple
+        p           <- Promise.make[Nothing, Channel[A]]
+        s           <- queue.size
+        _           <- nonEmpty.set(p).when(s == 0)
+        _           <- promise.succeed(())
+      yield a
+    }
 
   /**
    * Returns the current status of the channel. If the channel is closed, the
@@ -67,7 +83,7 @@ class Channel[A] private (queue: Channel.ChanQueue[A], done: Promise[ChannelStat
   def close: UIO[ChannelStatus] =
     for
       q <- queue.takeAll
-      _ <- ZIO.foreach(q) { case (promise, a) => promise.succeed(a) }
+      _ <- ZIO.foreach(q) { case (promise, a) => promise.succeed(()) }
       _ <- done.succeed(true)
       _ <- queue.shutdown
     yield Closed
@@ -95,7 +111,7 @@ object Closed extends ChannelStatus
  *   the type of messages in the queue
  */
 object Channel:
-  private type ChanQueue[A] = Queue[(Promise[ChannelStatus, A], A)]
+  private type ChanQueue[A] = Queue[(Promise[ChannelStatus, Unit], A)]
 
   /**
    * Creates a new instance of the `Channel` object. The `capacity` parameter
@@ -112,9 +128,10 @@ object Channel:
    */
   def make[A](capacity: Int): UIO[Channel[A]] =
     for
-      queue <- Queue.bounded[(Promise[ChannelStatus, A], A)](capacity + 1)
-      done  <- Promise.make[ChannelStatus, Boolean]
-    yield new Channel(queue, done, capacity + 1)
+      queue    <- Queue.bounded[(Promise[ChannelStatus, Unit], A)](capacity + 1)
+      nonEmpty <- Promise.make[Nothing, Channel[A]].flatMap(Ref.make)
+      done     <- Promise.make[ChannelStatus, Boolean]
+    yield new Channel(queue, nonEmpty, done, capacity + 1)
 
   /**
    * Creates a new instance of the `Channel` with `capacity` 0 which will block
@@ -141,4 +158,15 @@ object Channel:
    *   a `IO` returning a message or a ZIO with error`ChannelStatus`
    */
 
-  def select[A](channels: Channel[A]*): IO[ChannelStatus, A] = ???
+  def waitForNonEmpty[A](c: Channel[A]): UIO[Channel[A]] =
+    for
+      p <- c.nonEmpty.get
+      _ <- p.await
+    yield c
+
+  def select[A](channels: Channel[A]*): IO[ChannelStatus, A] =
+    val waits = channels.map(waitForNonEmpty)
+    for
+      c <- ZIO.raceAll(waits.head, waits.tail)
+      a <- c.receive
+    yield a

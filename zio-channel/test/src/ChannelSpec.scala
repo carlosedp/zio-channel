@@ -255,5 +255,5 @@ object ChannelSpec extends ZIOSpecDefault:
         // test("select messages in loop until select returns closed"):
         // test("one channel is closed, and we select from both channels"):
         // test("both channels have messages, but we add a timeout to limit the waiting time for a message."):
-      ) @@ TestAspect.ignore, // Disable select tests for now
+      ),
     )
