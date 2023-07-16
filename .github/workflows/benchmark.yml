@@ -1,0 +1,51 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+    branches: ["*"]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    strategy:
+      matrix:
+        jvm: ["17"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.jvm }}
+
+      - name: Install libuv
+        run: sudo apt-get update && sudo apt-get install -y libuv1-dev
+
+      - name: Cache packages
+        uses: coursier/cache-action@v6
+        id: coursier-cache
+
+      - name: Run Jmh benchmarks
+        run: ./mill Alias/run bench
+
+      - name: Upload benchmark results to Gist
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ secrets.GIST_TOKEN }}
+          gist_description: Benchmark results for ${{ github.ref }}
+          gist_file_name: jmh-result.json
+          gist_id: e0eddcb77eee2eab18fb13d67eb0ead2
+          file_path: out/benchmarks/runJmh.dest/jmh-result.json
+          file_type: text
