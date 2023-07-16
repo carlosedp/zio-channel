@@ -4,6 +4,8 @@ import scalajslib._, scalanativelib._
 
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
 import mill.contrib.scoverage._
+import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
+import contrib.jmh.JmhModule
 import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
 import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
@@ -81,6 +83,18 @@ object examples extends Common {
   def moduleDeps = Seq(`zio-channel`.jvm)
 }
 
+object benchmarks extends Common with JmhModule {
+  def jmhCoreVersion   = "1.36"
+  def moduleDeps       = Seq(`zio-channel`.jvm)
+  override def ivyDeps = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:0.2.0")
+  def copyResultJson = T {
+    os.copy(
+      T.dest / os.up / "runJmh.dest" / "jmh-result.json",
+      os.pwd / "jmh-result.json",
+    )
+  }
+}
+
 object scoverage extends ScoverageReport {
   override def scalaVersion     = versions.scala3
   override def scoverageVersion = versions.scoverage
@@ -95,4 +109,5 @@ object MyAliases extends Aliases {
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
+  def bench    = alias(s"benchmarks.runJmh -rf json")
 }
