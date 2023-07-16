@@ -63,3 +63,5 @@ To create a multiple position(buffered) channel where the fibers doesn't block s
 It's also possible to get the channel `status` checking the amount of messages waiting, positive for senders and negative for receivers and `close` a channel to remove all messages and unblock the waiting fibers.
 
 There are some additional examples at [./examples/src/](./examples/src/) which can be run with scala-cli.
+
+Check benchmarks comparing zio-channel with ZIO queues [here](https://jmh.morethan.io/?url=https://gist.githubusercontent.com/carlosedp/e0eddcb77eee2eab18fb13d67eb0ead2/raw/4f7b83d4df5ffc25fd589d26b046151f68bc6b6b/jmh-result.json&source=https://gist.githubusercontent.com/carlosedp/e0eddcb77eee2eab18fb13d67eb0ead2/raw/4f7b83d4df5ffc25fd589d26b046151f68bc6b6b/jmh-result.json).
