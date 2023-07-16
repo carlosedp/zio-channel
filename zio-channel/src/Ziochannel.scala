@@ -163,6 +163,5 @@ object Channel:
    * @return
    *   a `IO` returning a message or a ZIO with error`ChannelStatus`
    */
-  def select[A](channels: Channel[A]*): IO[ChannelStatus, A] =
-    val waits = channels.map(_.waitForNonEmpty)
-    ZIO.raceAll(waits.head, waits.tail).flatMap(_.receive)
+  def select[A](head: Channel[A], tail: Channel[A]*): IO[ChannelStatus, A] =
+    head.waitForNonEmpty.raceAll(tail.map(_.waitForNonEmpty)).flatMap(_.receive)
