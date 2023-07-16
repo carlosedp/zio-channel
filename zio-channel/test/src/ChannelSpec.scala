@@ -251,9 +251,44 @@ object ChannelSpec extends ZIOSpecDefault:
           yield assertTrue(
             s1 == 1,
             s2 == 1,
+          )
+        ,
+        test("make sure select and receive are not blocking each other"):
+          for
+            chan1  <- Channel.make[Int]
+            chan2  <- Channel.make[Int]
+            _      <- chan1.send(1).fork
+            _      <- chan2.send(2).fork
+            s1     <- chan1.receive
+            s2     <- Channel.select(chan1, chan2)
+            status <- chan1.status
+          yield assertTrue(
+            s1 == 1,
+            s2 == 2,
+            status == 0,
+          )
+        ,
+        test("select on channels with no messages should block"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            f1    <- Channel.select(chan1, chan2).fork
+            s1    <- waitUntilSuspended(f1)
+          yield assertTrue(
+            s1 == true
+          )
+        ,
+        test("select on channels with no messages should block and then unblock when message is sent"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            f1    <- Channel.select(chan1, chan2).fork
+            s1    <- waitUntilSuspended(f1)
+            _     <- chan1.send(1)
+            s2    <- f1.join
+          yield assertTrue(
+            s1 == true,
+            s2 == 1,
           ),
-        // test("select messages in loop until select returns closed"):
-        // test("one channel is closed, and we select from both channels"):
-        // test("both channels have messages, but we add a timeout to limit the waiting time for a message."):
       ),
-    )
+    ) @@ TestAspect.timeout(10.seconds)
