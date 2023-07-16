@@ -16,7 +16,7 @@ import zio.channel.*
 @Measurement(iterations = 10, timeUnit = TimeUnit.SECONDS, time = 1)
 class Benchmarks:
 
-  val numMessages = 10000
+  val numMessages = 1000
 
   private def executeZio[A](zio: Task[A]): A =
     BenchmarkUtils.unsafeRun(zio)
