@@ -109,5 +109,5 @@ object MyAliases extends Aliases {
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
-  def bench    = alias(s"benchmarks.runJmh -rf json")
+  def bench    = alias(s"benchmarks.runJmh")
 }

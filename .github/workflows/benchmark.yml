@@ -30,15 +30,12 @@ jobs:
           distribution: "temurin"
           java-version: ${{ matrix.jvm }}
 
-      - name: Install libuv
-        run: sudo apt-get update && sudo apt-get install -y libuv1-dev
-
       - name: Cache packages
         uses: coursier/cache-action@v6
         id: coursier-cache
 
       - name: Run Jmh benchmarks
-        run: ./mill Alias/run bench
+        run: ./mill benchmarks.runJmh -rf json
 
       - name: Upload benchmark results to Gist
         uses: exuanbo/actions-deploy-gist@v1
