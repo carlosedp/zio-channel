@@ -90,9 +90,6 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Install libuv
-        run: sudo apt-get update && sudo apt-get install -y libuv1-dev
-
       - name: Cache packages
         uses: coursier/cache-action@v6
         id: coursier-cache
@@ -107,6 +104,8 @@ jobs:
 
   publish-release:
     needs: [test]
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     if: contains(github.ref, 'refs/tags/')
     steps:
@@ -120,9 +119,6 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
-
-      - name: Install libuv
-        run: sudo apt-get update && sudo apt-get install -y libuv1-dev
 
       - name: Cache packages
         uses: coursier/cache-action@v6
