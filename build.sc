@@ -12,7 +12,7 @@ import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
 import com.github.lolgab.mill.crossplatform._
 import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import com.goyeau.mill.scalafix.ScalafixModule
-import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+import $ivy.`com.carlosedp::mill-aliases::0.3.0`
 import com.carlosedp.aliases._
 
 object versions {
@@ -109,5 +109,5 @@ object MyAliases extends Aliases {
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
-  def bench    = alias(s"benchmarks.runJmh")
+  def bench    = alias(s"benchmarks.runJmh -rf json")
 }

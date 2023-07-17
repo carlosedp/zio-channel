@@ -35,7 +35,7 @@ jobs:
         id: coursier-cache
 
       - name: Run Jmh benchmarks
-        run: ./mill benchmarks.runJmh -rf json
+        run: ./mill Alias/run bench
 
       - name: Get current date
         id: date
