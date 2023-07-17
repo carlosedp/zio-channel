@@ -15,6 +15,8 @@ import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import com.goyeau.mill.scalafix.ScalafixModule
 import $ivy.`com.carlosedp::mill-aliases::0.3.0`
 import com.carlosedp.aliases._
+import $ivy.`io.github.davidgregory084::mill-tpolecat::0.3.5`
+import io.github.davidgregory084.TpolecatModule
 
 object versions {
   val scala3      = "3.3.0"
@@ -51,7 +53,7 @@ trait Publish extends CiReleaseModule {
 trait Common extends ScalaModule {
   def scalaVersion = versions.scala3
   override def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard", "-source:future")
+    super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard")
   }
   def ivyDeps = Agg(
     ivy"dev.zio::zio:${versions.zio}"
@@ -70,6 +72,7 @@ object `zio-channel` extends CrossPlatform {
     with Common
     with ScalafmtModule
     with ScalafixModule
+    with TpolecatModule
     with Publish {
     def artifactName = "zio-channel"
   }

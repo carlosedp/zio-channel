@@ -248,9 +248,12 @@ object ChannelSpec extends ZIOSpecDefault:
             _     <- chan2.send(2).fork
             s1    <- Channel.select(chan1, chan2)
             s2    <- Channel.select(chan1, chan2)
+            s3    <- Channel.select(chan1, chan2)
           yield assertTrue(
-            s1 == 1,
-            s2 == 1,
+            // order is not guaranteed
+            s1 == 1 && s2 == 2 && s3 == 1 ||
+              s1 == 1 && s2 == 1 && s3 == 2 ||
+              s1 == 2 && s2 == 1 && s3 == 1
           )
         ,
         test("make sure select and receive are not blocking each other"):
