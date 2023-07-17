@@ -60,7 +60,7 @@ object `zio-channel` extends CrossPlatform {
     with ScalafmtModule
     with ScalafixModule
     with Publish {
-    // common settings here
+    def artifactName = "zio-channel"
   }
   object jvm extends Shared with ScoverageModule {
     // jvm specific settings here
