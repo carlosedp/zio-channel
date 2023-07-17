@@ -7,6 +7,7 @@ import mill.contrib.scoverage._
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
 import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
 import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
 import com.github.lolgab.mill.crossplatform._
@@ -34,6 +35,16 @@ trait Publish extends CiReleaseModule {
       Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp")
     ),
   )
+  def publishVersion = T {
+    val isTag = T.ctx().env.get("GITHUB_REF").exists(_.startsWith("refs/tags"))
+    val state = VcsVersion.vcsState()
+    if (state.commitsSinceLastTag == 0 && isTag) {
+      state.stripV(state.lastTag.get)
+    } else {
+      val v = state.stripV(state.lastTag.get).split('.')
+      s"${v(0)}.${(v(1).toInt) + 1}-SNAPSHOT"
+    }
+  }
   override def sonatypeHost = Some(SonatypeHost.s01)
 }
 
