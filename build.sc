@@ -50,9 +50,12 @@ trait Publish extends CiReleaseModule {
   override def sonatypeHost = Some(SonatypeHost.s01)
 }
 
-trait Common extends ScalaModule {
+trait Common extends ScalaModule
+  with ScalafmtModule
+  with ScalafixModule
+  with TpolecatModule {
   def scalaVersion = versions.scala3
-  override def scalacOptions = T {
+  def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard")
   }
   def ivyDeps = Agg(
@@ -70,9 +73,6 @@ trait CommonTests extends TestModule.ZioTest {
 object `zio-channel` extends CrossPlatform {
   trait Shared extends CrossPlatformScalaModule
     with Common
-    with ScalafmtModule
-    with ScalafixModule
-    with TpolecatModule
     with Publish {
     def artifactName = "zio-channel"
   }
@@ -98,9 +98,9 @@ object examples extends Common {
 }
 
 object benchmarks extends Common with JmhModule {
-  def jmhCoreVersion   = "1.36"
-  def moduleDeps       = Seq(`zio-channel`.jvm)
-  override def ivyDeps = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:0.2.0")
+  def jmhCoreVersion = "1.36"
+  def moduleDeps     = Seq(`zio-channel`.jvm)
+  def ivyDeps        = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:0.2.0")
   def copyResultJson = T {
     os.copy(
       T.dest / os.up / "runJmh.dest" / "jmh-result.json",
@@ -110,8 +110,8 @@ object benchmarks extends Common with JmhModule {
 }
 
 object scoverage extends ScoverageReport {
-  override def scalaVersion     = versions.scala3
-  override def scoverageVersion = versions.scoverage
+  def scalaVersion     = versions.scala3
+  def scoverageVersion = versions.scoverage
 }
 
 object MyAliases extends Aliases {
