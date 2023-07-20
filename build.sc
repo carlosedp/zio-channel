@@ -13,7 +13,7 @@ import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
 import com.github.lolgab.mill.crossplatform._
 import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import com.goyeau.mill.scalafix.ScalafixModule
-import $ivy.`com.carlosedp::mill-aliases::0.3.0`
+import $ivy.`com.carlosedp::mill-aliases::0.4.1`
 import com.carlosedp.aliases._
 import $ivy.`io.github.davidgregory084::mill-tpolecat::0.3.5`
 import io.github.davidgregory084.TpolecatModule
@@ -61,6 +61,7 @@ trait Common extends ScalaModule
   def ivyDeps = Agg(
     ivy"dev.zio::zio:${versions.zio}"
   )
+  def scalafixIvyDeps = super.scalacPluginIvyDeps() ++ Agg(ivy"com.github.xuwei-k::scalafix-rules:0.3.0")
 }
 
 trait CommonTests extends TestModule.ZioTest {

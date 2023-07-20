@@ -1,11 +1,11 @@
 package zio.channel.benchmarks
 
-import org.openjdk.jmh.annotations.{Scope, *}
 import java.util.concurrent.TimeUnit
-import zio.profiling.jmh.BenchmarkUtils
 
+import org.openjdk.jmh.annotations.{Scope, *}
 import zio.*
 import zio.channel.*
+import zio.profiling.jmh.BenchmarkUtils
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Array(Mode.AverageTime))
