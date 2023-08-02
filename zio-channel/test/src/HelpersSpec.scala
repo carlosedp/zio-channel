@@ -12,21 +12,21 @@ object HelpersSpec extends ZIOSpecDefault:
         test("foreverWhile loop should finish"):
           for
             res <- foreverWhile:
-                     for
-                       r <- ZIO.succeed(false)
-                     yield r
+              for
+                r <- ZIO.succeed(false)
+              yield r
           yield assertCompletes
         ,
         test("foreverWhile loop should finish after 10 loops"):
           var counter: Int = 0
           for
             res <- foreverWhile:
-                     for
-                       r <- ZIO.succeed {
-                              counter += 1
-                              counter < 10
-                            }
-                     yield r
+              for
+                r <- ZIO.succeed {
+                  counter += 1
+                  counter < 10
+                }
+              yield r
           yield assert(counter)(equalTo(10)),
       )
     )

@@ -17,10 +17,10 @@ import zio.*
  *   the type of messages in the queue
  */
 class Channel[A] private (
-  queue:    Channel.ChanQueue[A],
-  nonEmpty: Ref[Promise[Nothing, Channel[A]]],
-  done:     Promise[ChannelStatus, Boolean],
-  capacity: Int,
+    queue:    Channel.ChanQueue[A],
+    nonEmpty: Ref[Promise[Nothing, Channel[A]]],
+    done:     Promise[ChannelStatus, Boolean],
+    capacity: Int,
 ):
 
   /**
@@ -36,13 +36,13 @@ class Channel[A] private (
     for
       promise <- Promise.make[ChannelStatus, Unit]
       _ <- ZIO.uninterruptibleMask { restore =>
-             for
-               _    <- queue.offer((promise, a))
-               size <- queue.size
-               _    <- nonEmpty.get.flatMap(_.succeed(this)).when(size > 0)
-               _    <- restore(promise.await).when(size >= capacity)
-             yield ()
-           }
+        for
+          _    <- queue.offer((promise, a))
+          size <- queue.size
+          _    <- nonEmpty.get.flatMap(_.succeed(this)).when(size > 0)
+          _    <- restore(promise.await).when(size >= capacity)
+        yield ()
+      }
     yield ()
 
   /**
@@ -55,11 +55,11 @@ class Channel[A] private (
   def receive: IO[ChannelStatus, A] =
     ZIO.uninterruptibleMask { restore =>
       for
-        tuple       <- restore(queue.take)
+        tuple <- restore(queue.take)
         (promise, a) = tuple
-        size        <- queue.size
-        _           <- Promise.make[Nothing, Channel[A]].flatMap(nonEmpty.set).when(size == 0)
-        _           <- promise.succeed(())
+        size <- queue.size
+        _    <- Promise.make[Nothing, Channel[A]].flatMap(nonEmpty.set).when(size == 0)
+        _    <- promise.succeed(())
       yield a
     }
 

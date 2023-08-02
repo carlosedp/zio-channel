@@ -51,9 +51,9 @@ trait Publish extends CiReleaseModule {
 }
 
 trait Common extends ScalaModule
-  with ScalafmtModule
-  with ScalafixModule
-  with TpolecatModule {
+    with ScalafmtModule
+    with ScalafixModule
+    with TpolecatModule {
   def scalaVersion = versions.scala3
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard")
@@ -73,8 +73,8 @@ trait CommonTests extends TestModule.ZioTest {
 
 object `zio-channel` extends CrossPlatform {
   trait Shared extends CrossPlatformScalaModule
-    with Common
-    with Publish {
+      with Common
+      with Publish {
     def artifactName = "zio-channel"
   }
   object jvm extends Shared with ScoverageModule {
