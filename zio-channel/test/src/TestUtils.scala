@@ -28,7 +28,7 @@ object TestUtils:
   def waitUntilEitherFiberIsSuspended[A, B](
       fiber1: Fiber.Runtime[ChannelStatus, A],
       fiber2: Fiber.Runtime[ChannelStatus, B],
-  ): ZIO[Any, Nothing, Boolean] =
+    ): ZIO[Any, Nothing, Boolean] =
     Live.live(
       (fiber1.status.zipWithPar(fiber2.status)(_.isSuspended || _.isSuspended) <* Clock.sleep(sleepTime)).repeatUntil(
         _ == true

@@ -21,7 +21,7 @@ class Channel[A] private (
     nonEmpty: Ref[Promise[Nothing, Channel[A]]],
     done:     Promise[ChannelStatus, Boolean],
     capacity: Int,
-):
+  ):
 
   /**
    * Sends a message to the channel and blocks until the message is received by
