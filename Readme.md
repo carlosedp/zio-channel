@@ -64,4 +64,4 @@ It's also possible to get the channel `status` checking the amount of messages w
 
 There are some additional examples at [./examples/src/](./examples/src/) which can be run with scala-cli.
 
-Check benchmarks comparing zio-channel with ZIO queues for latest commit to main [here](https://jmh.morethan.io/?gist=e0eddcb77eee2eab18fb13d67eb0ead2). The benchmark shows the time taken to send and receive 1000 messages (smaller is better).
+Check benchmarks comparing zio-channel with native ZIO queues for latest commit to main [here](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/carlosedp/zio-channel/main/benchmark-files/jmh-result-latest.json). The benchmark shows the time taken to send and receive 1000 messages (smaller is better).
