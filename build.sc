@@ -103,10 +103,18 @@ object benchmarks extends Common with JmhModule {
   def moduleDeps     = Seq(`zio-channel`.jvm)
   def ivyDeps        = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:0.2.0")
   def copyResultJson = T {
-    os.copy(
+    val id =
+      os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call().out.text().trim()
+    val benchfile = s"jmh-result-${id}.json"
+    os.copy.over(
       T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-      os.pwd / "jmh-result.json",
+      os.pwd / "benchmark-files" / benchfile,
     )
+    os.copy.over(
+      T.dest / os.up / "runJmh.dest" / "jmh-result.json",
+      os.pwd / "benchmark-files" / "jmh-result-latest.json",
+    )
+
   }
 }
 
@@ -124,5 +132,5 @@ object MyAliases extends Aliases {
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
-  def bench    = alias(s"benchmarks.runJmh -rf json")
+  def bench    = alias(s"benchmarks.runJmh -rf json", "benchmarks.copyResultJson")
 }

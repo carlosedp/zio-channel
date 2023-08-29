@@ -19,6 +19,8 @@ object ZioChanSelect extends ZIOAppDefault:
       _     <- chan2.send(2).fork
       s     <- Channel.select(chan1, chan2)
       _     <- Console.printLine(s"Received $s")
+      s     <- Channel.select(chan1, chan2)
+      _     <- Console.printLine(s"Received $s")
     yield ()
 
   val run = program

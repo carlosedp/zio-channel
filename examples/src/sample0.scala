@@ -13,10 +13,9 @@ object ZioChan0 extends ZIOAppDefault:
   val run =
     for
       chan <- Channel.make[Int]
-      f1 <-
-        (Console.printLine("Receiver 1 will block until it gets a message") *>
-          chan.receive.tap(i => Console.printLine(s"Receiver 1 received $i")) *>
-          Console.printLine("Receiver resumed")).fork
+      f1 <- (Console.printLine("Receiver 1 will block until it gets a message") *>
+        chan.receive.tap(i => Console.printLine(s"Receiver 1 received $i")) *>
+        Console.printLine("Receiver resumed")).fork
       _ <- Console.printLine("Sender 1 will send 1")
       _ <- chan.send(1)
       _ <- f1.join
