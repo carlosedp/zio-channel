@@ -9,7 +9,7 @@ import contrib.jmh.JmhModule
 import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
-import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
+import $ivy.`com.github.lolgab::mill-crossplatform::0.2.4`
 import com.github.lolgab.mill.crossplatform._
 import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -19,11 +19,13 @@ import $ivy.`io.github.davidgregory084::mill-tpolecat::0.3.5`
 import io.github.davidgregory084.TpolecatModule
 
 object versions {
-  val scala3      = "3.3.0"
+  val scala3      = "3.3.1"
   val scalajs     = "1.13.2"
-  val scalanative = "0.4.14"
-  val zio         = "2.0.15"
+  val scalanative = "0.4.15"
+  val zio         = "2.0.16"
   val scoverage   = "2.0.8"
+  val jmh         = "1.37"
+  val ziojmh      = "0.2.1"
 }
 
 trait Publish extends CiReleaseModule {
@@ -99,9 +101,9 @@ object examples extends Common {
 }
 
 object benchmarks extends Common with JmhModule {
-  def jmhCoreVersion = "1.36"
+  def jmhCoreVersion = versions.jmh
   def moduleDeps     = Seq(`zio-channel`.jvm)
-  def ivyDeps        = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:0.2.0")
+  def ivyDeps        = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:${versions.ziojmh}")
   def copyResultJson = T {
     val id =
       os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call().out.text().trim()
