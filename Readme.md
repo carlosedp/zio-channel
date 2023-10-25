@@ -1,12 +1,12 @@
 # Zio-channel, Go-like channels for your ZIO application
 
-Channel is a construct that provides a meeting point for two fibers to communicate. It requires both the sender and receiver to "meet" to exchange messages, blocking one until the other is available. Channels also can be constructed as buffered to provide some capacity allowing the fibers to continue until it gets full.
+Channel is a construct that provides a meeting point for two fibers to communicate. It requires both the sender and receiver to "meet" to exchange messages, blocking one until the other is available. Channels also can be constructed with a buffer to provide some capacity slots allowing the fibers to continue running until the channel gets full.
 
 The concept comes from [Golang](https://go.dev/tour/concurrency/2) Channels, Erlang [message passing](https://www.erlang.org/blog/message-passing/) and also [Stackless Python](https://stackless.readthedocs.io/en/2.7-slp/library/stackless/channels.html) but now in a functional paradigm as a ZIO library for Scala applications.
 
 The idea to create this came when I read Adam Warsky's [post](https://softwaremill.com/go-like-channels-using-project-loom-and-scala/) implementing this using Project Loom on Scala Ox lib.
 
-Channels can be unbuffered, with only one position or buffered with N positions. Fibers sending or receiving to this channel block if it's an unbuffered channel or once the buffered channel becomes full.
+Channels can be unbuffered, with only one slot or buffered with N slots. Fibers sending or receiving to this channel block if it's an unbuffered channel or once the buffered channel becomes full.
 
 This is still a prototype with basic functionality to gather interest and ideas for improvements. The lib is currently built for Scala 3.3 on JVM, Scala Native and ScalaJs. I don't plan to support Scala 2.
 
@@ -58,10 +58,10 @@ object ZioChanel extends ZIOAppDefault:
 
 Run it with `scala-cli examples/src/sample-readme.scala`.
 
-To create a multiple position(buffered) channel where the fibers doesn't block sending or receiving to it until full, use `chan <- Channel.make[Int](5)`.
+To create a multiple slot(buffered) channel where the fibers doesn't block sending or receiving to it until full, use `chan <- Channel.make[Int](5)`.
 
-It's also possible to get the channel `status` checking the amount of messages waiting, positive for senders and negative for receivers and `close` a channel to remove all messages and unblock the waiting fibers.
+It's also possible to get the channel `status` to check the amount of messages waiting, positive for senders and negative for receivers and `close` a channel to remove all messages and unblock the waiting fibers.
 
-There are some additional examples at [./examples/src/](./examples/src/) which can be run with scala-cli.
+There are some additional examples at [./examples/src/](./examples/src/) including `channel.select` to receive from a collection of channels. all of them can be run with scala-cli.
 
 Check benchmarks comparing zio-channel with native ZIO queues for latest commit to main [here](https://jmh.morethan.io/?source=https://raw.githubusercontent.com/carlosedp/zio-channel/main/benchmark-files/jmh-result-latest.json). The benchmark shows the time taken to send and receive 1000 messages (smaller is better).
