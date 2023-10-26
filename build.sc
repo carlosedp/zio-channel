@@ -58,7 +58,7 @@ trait Common extends ScalaModule
     with TpolecatModule {
   def scalaVersion = versions.scala3
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard")
+    super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard", "-Wnonunit-statement")
   }
   def ivyDeps = Agg(
     ivy"dev.zio::zio:${versions.zio}"
