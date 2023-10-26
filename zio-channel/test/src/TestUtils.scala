@@ -11,7 +11,7 @@ object TestUtils:
 
   // Wait for a channel to have a certain size
   def waitForSize[A](chan: Channel[A], size: Int): UIO[Int] =
-    waitForValue(chan.status, size)
+    val _ = waitForValue(chan.status, size)
     ZIO.succeed(size)
 
   // Wait until a fiber to be suspended

@@ -203,6 +203,16 @@ object ChannelSpec extends ZIOSpecDefault:
             s1 == 1
           )
         ,
+        test("select message from a Seq containing two channels"):
+          for
+            chan1 <- Channel.make[Int]
+            chan2 <- Channel.make[Int]
+            _     <- chan1.send(1).fork
+            s1    <- Channel.select(Seq(chan1, chan2))
+          yield assertTrue(
+            s1 == 1
+          )
+        ,
         test("select message from two channels where message comes from second channel"):
           for
             chan1 <- Channel.make[Int]

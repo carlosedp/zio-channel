@@ -165,3 +165,14 @@ object Channel:
    */
   def select[A](head: Channel[A], tail: Channel[A]*): IO[ChannelStatus, A] =
     head.waitForNonEmpty.raceAll(tail.map(_.waitForNonEmpty)).flatMap(_.receive)
+
+  /**
+   * Same as [[select]] but takes an `Iterable` of channels instead of a varargs
+   * argument list.
+   * @param channels
+   *   the channels to select from
+   * @return
+   *   a `IO` returning a message or a ZIO with error`ChannelStatus`
+   */
+  def select[A](channels: Iterable[Channel[A]]): IO[ChannelStatus, A] =
+    select(channels.head, channels.tail.toSeq*)
