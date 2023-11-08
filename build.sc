@@ -30,14 +30,14 @@ object versions {
 
 trait Publish extends CiReleaseModule {
     def pomSettings = PomSettings(
-      description = "Zio-channel is a Go-like channel implementation for ZIO",
-      organization = "com.carlosedp",
-      url = "https://github.com/carlosedp/zio-channel",
-      licenses = Seq(License.MIT),
-      versionControl = VersionControl.github("carlosedp", "zio-channel"),
-      developers = Seq(
-        Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp")
-      ),
+        description = "Zio-channel is a Go-like channel implementation for ZIO",
+        organization = "com.carlosedp",
+        url = "https://github.com/carlosedp/zio-channel",
+        licenses = Seq(License.MIT),
+        versionControl = VersionControl.github("carlosedp", "zio-channel"),
+        developers = Seq(
+            Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp")
+        ),
     )
     def publishVersion = T {
         val isTag = T.ctx().env.get("GITHUB_REF").exists(_.startsWith("refs/tags"))
@@ -61,15 +61,15 @@ trait Common extends ScalaModule
         super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard", "-Wnonunit-statement")
     }
     def ivyDeps = Agg(
-      ivy"dev.zio::zio:${versions.zio}"
+        ivy"dev.zio::zio:${versions.zio}"
     )
     def scalafixIvyDeps = super.scalacPluginIvyDeps() ++ Agg(ivy"com.github.xuwei-k::scalafix-rules:0.3.0")
 }
 
 trait CommonTests extends TestModule.ZioTest {
     def ivyDeps = Agg(
-      ivy"dev.zio::zio-test::${versions.zio}",
-      ivy"dev.zio::zio-test-sbt::${versions.zio}",
+        ivy"dev.zio::zio-test::${versions.zio}",
+        ivy"dev.zio::zio-test-sbt::${versions.zio}",
     )
 }
 
@@ -109,12 +109,12 @@ object benchmarks extends Common with JmhModule {
             os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call().out.text().trim()
         val benchfile = s"jmh-result-${id}.json"
         os.copy.over(
-          T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-          os.pwd / "benchmark-files" / benchfile,
+            T.dest / os.up / "runJmh.dest" / "jmh-result.json",
+            os.pwd / "benchmark-files" / benchfile,
         )
         os.copy.over(
-          T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-          os.pwd / "benchmark-files" / "jmh-result-latest.json",
+            T.dest / os.up / "runJmh.dest" / "jmh-result.json",
+            os.pwd / "benchmark-files" / "jmh-result-latest.json",
         )
 
     }
