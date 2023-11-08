@@ -24,6 +24,6 @@ import zio.*
  *   a ZIO that runs the effect forever while the condition is true
  */
 def foreverWhile[R, E](effect: ZIO[R, E, Boolean]): ZIO[R, E, Unit] =
-  effect.flatMap: bool =>
-    if bool then foreverWhile(effect)
-    else ZIO.unit
+    effect.flatMap: bool =>
+        if bool then foreverWhile(effect)
+        else ZIO.unit
