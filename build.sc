@@ -87,12 +87,12 @@ object `zio-channel` extends CrossPlatform {
     object js extends Shared with ScalaJSModule {
         def scalaJSVersion = versions.scalajs
         // js specific settings here
-        object test extends ScalaTests with CommonTests
+        object test extends ScalaJSTests with CommonTests
     }
     object native extends Shared with ScalaNativeModule {
         // native specific settings here
         def scalaNativeVersion = versions.scalanative
-        object test extends ScalaTests with CommonTests
+        object test extends ScalaNativeTests with CommonTests
     }
 }
 
