@@ -21,8 +21,8 @@ import io.github.davidgregory084.TpolecatModule
 object versions {
     val scala3      = "3.3.1"
     val scalajs     = "1.13.2"
-    val scalanative = "0.4.15"
-    val zio         = "2.0.16"
+    val scalanative = "0.4.16"
+    val zio         = "2.0.20"
     val scoverage   = "2.0.8"
     val jmh         = "1.37"
     val ziojmh      = "0.2.1"

@@ -38,4 +38,3 @@ object ZioChan3 extends ZIOAppDefault:
             _ <- fiberA.join
             _ <- Console.printLine("Done")
         yield ()
-end ZioChan3

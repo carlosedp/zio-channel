@@ -21,4 +21,3 @@ object ZioChan0 extends ZIOAppDefault:
             _ <- f1.join
             _ <- Console.printLine("Done")
         yield ()
-end ZioChan0
