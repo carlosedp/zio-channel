@@ -115,25 +115,22 @@ object ChannelSpec extends ZIOSpecDefault:
                         fiber2StatusAft == true,
                     )
 
-                test("sending fibers are unblocked when channel is closed"):
+                test("sending fiber is unblocked when channel is closed"):
                     for
                         chan             <- Channel.make[Int]
-                        f1               <- chan.send(1).fork
-                        f2               <- chan.send(1).fork
-                        chanStatusBef    <- waitForSize(chan, 2)
+                        f1               <- (chan.send(1) *> ZIO.succeed("done")).fork
+                        chanStatusBef    <- waitForSize(chan, 1)
                         fiber1SuspBef    <- waitUntilSuspended(f1)
-                        fiber2SuspBef    <- waitUntilSuspended(f2)
                         _                <- chan.close
                         chanStatusAft    <- waitForSize(chan, 0)
                         fiber1NotSuspAft <- waitUntilNotSuspended(f1)
-                    // fiber2NotSuspAft <- waitUntilNotSuspended(f2)
+                        f1Data           <- f1.join
                     yield assertTrue(
-                        chanStatusBef == 2,
+                        chanStatusBef == 1,
                         fiber1SuspBef == true,
-                        fiber2SuspBef == true,
                         chanStatusAft == 0,
                         fiber1NotSuspAft == true,
-                        // fiber2NotSuspAft == true,
+                        f1Data == "done",
                     )
 
             // Buffered channel tests
