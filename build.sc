@@ -139,7 +139,7 @@ def updateExampleVersions() = T.command {
     examples.foreach { example =>
         val newContent =
             os.read(example).replaceAll(
-                "com.carlosedp::zio-channel:.+",
+                "com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+",
                 s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
             )
         os.write.over(example, newContent)
@@ -148,7 +148,7 @@ def updateExampleVersions() = T.command {
     val readme = os.read(os.pwd / "README.md")
     val newReadme = readme
         .replaceAll( // Update Mill/Scala-cli version
-            "com.carlosedp::zio-channel:.+",
+            "com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+",
             s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
         )
         .replaceAll( // Update the SBT version

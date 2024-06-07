@@ -24,7 +24,7 @@ Add to your `build.sbt` / `build.sc` / scala-cli:
 
 ```scala
 // For Mill:
-def ivyDeps = Agg(ivy"com.carlosedp::zio-channel:0.6.0
+def ivyDeps = Agg(ivy"com.carlosedp::zio-channel:0.6.0")
 // or for SBT:
 libraryDependencies += "com.carlosedp" %% "zio-channel" % "0.6.0"
 // or in scala-cli app:
