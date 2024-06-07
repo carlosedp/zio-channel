@@ -39,6 +39,14 @@ trait Publish extends CiReleaseModule {
             Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp")
         ),
     )
+    def latestVersion = T {
+        val v = VcsVersion.vcsState().stripV(VcsVersion.vcsState().lastTag.get)
+        if (v.endsWith("-SNAPSHOT")) {
+            v.replace("-SNAPSHOT", "")
+        } else {
+            v
+        }
+    }
     def publishVersion = T {
         val isTag = T.ctx().env.get("GITHUB_REF").exists(_.startsWith("refs/tags"))
         val state = VcsVersion.vcsState()
@@ -123,6 +131,31 @@ object benchmarks extends Common with JmhModule {
 object scoverage extends ScoverageReport {
     def scalaVersion     = versions.scala3
     def scoverageVersion = versions.scoverage
+}
+
+// Go thru Readme and all examples in ./examples/src/*.scala and update the versions
+def updateExampleVersions() = T.command {
+    val examples = os.list(os.pwd / "examples" / "src").filter(_.ext == "scala")
+    examples.foreach { example =>
+        val newContent =
+            os.read(example).replaceAll(
+                "com.carlosedp::zio-channel:.+",
+                s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
+            )
+        os.write.over(example, newContent)
+    }
+    // Update the README.md with the latest version
+    val readme = os.read(os.pwd / "README.md")
+    val newReadme = readme
+        .replaceAll( // Update Mill/Scala-cli version
+            "com.carlosedp::zio-channel:.+",
+            s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
+        )
+        .replaceAll( // Update the SBT version
+            """"com.carlosedp" %% "zio-channel" % .+""",
+            s""""com.carlosedp" %% "zio-channel" % "${`zio-channel`.jvm.latestVersion()}"""",
+        )
+    os.write.over(os.pwd / "README.md", newReadme)
 }
 
 object MyAliases extends Aliases {

@@ -24,11 +24,11 @@ Add to your `build.sbt` / `build.sc` / scala-cli:
 
 ```scala
 // For Mill:
-def ivyDeps = Agg(ivy"com.carlosedp::zio-channel:<version>")
+def ivyDeps = Agg(ivy"com.carlosedp::zio-channel:0.6.0
 // or for SBT:
-libraryDependencies += "com.carlosedp" %% "zio-channel" % "<version>"
+libraryDependencies += "com.carlosedp" %% "zio-channel" % "0.6.0"
 // or in scala-cli app:
-//> using lib "com.carlosedp::zio-channel:<version>"
+//> using lib "com.carlosedp::zio-channel:0.6.0
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ Below is a simple example that creates a one-slot channel (unbuffered) where the
 ```scala
 //> using scala 3
 //> using dep dev.zio::zio:2.0.21
-//> using dep com.carlosedp::zio-channel:0.5.5
+//> using dep com.carlosedp::zio-channel:0.6.0
 
 import zio.*
 import zio.channel.*

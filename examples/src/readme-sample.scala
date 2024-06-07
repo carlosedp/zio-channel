@@ -1,6 +1,6 @@
 //> using scala 3
 //> using dep dev.zio::zio:2.0.21
-//> using dep com.carlosedp::zio-channel:0.5.5
+//> using dep com.carlosedp::zio-channel:0.6.0
 
 import zio.*
 import zio.channel.*

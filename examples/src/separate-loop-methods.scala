@@ -3,7 +3,7 @@
 //> using scala 3
 //> using lib dev.zio::zio:2.0.21
 
-// //> using lib com.carlosedp::zio-channel:0.5.5
+// //> using lib com.carlosedp::zio-channel:0.6.0
 // Uncomment line above and remove lines below to use the published zio-channel lib
 //> using file "../../zio-channel/src/Ziochannel.scala"
 //> using file "../../zio-channel/src/Helpers.scala"
