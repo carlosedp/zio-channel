@@ -5,7 +5,7 @@
         "mode" : "avgt",
         "threads" : 1,
         "forks" : 1,
-        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-aarch64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
+        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-x64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
         "jvmArgs" : [
             "-XX:ThreadPriorityPolicy=1",
             "-XX:+UnlockExperimentalVMOptions",
@@ -22,32 +22,32 @@
         "measurementTime" : "1 s",
         "measurementBatchSize" : 1,
         "primaryMetric" : {
-            "score" : 445852.54713333334,
-            "scoreError" : 8140.121662155257,
+            "score" : 1046520.1835999999,
+            "scoreError" : 232597.63608180598,
             "scoreConfidence" : [
-                437712.4254711781,
-                453992.6687954886
+                813922.547518194,
+                1279117.8196818058
             ],
             "scorePercentiles" : {
-                "0.0" : 443668.31933333335,
-                "50.0" : 445590.5553333333,
-                "90.0" : 448979.5,
-                "95.0" : 448979.5,
-                "99.0" : 448979.5,
-                "99.9" : 448979.5,
-                "99.99" : 448979.5,
-                "99.999" : 448979.5,
-                "99.9999" : 448979.5,
-                "100.0" : 448979.5
+                "0.0" : 988349.605,
+                "50.0" : 1052401.073,
+                "90.0" : 1138748.943,
+                "95.0" : 1138748.943,
+                "99.0" : 1138748.943,
+                "99.9" : 1138748.943,
+                "99.99" : 1138748.943,
+                "99.999" : 1138748.943,
+                "99.9999" : 1138748.943,
+                "100.0" : 1138748.943
             },
             "scoreUnit" : "us/op",
             "rawData" : [
                 [
-                    446742.2916666667,
-                    443668.31933333335,
-                    444282.06933333335,
-                    448979.5,
-                    445590.5553333333
+                    1057151.974,
+                    988349.605,
+                    995949.323,
+                    1052401.073,
+                    1138748.943
                 ]
             ]
         },
@@ -60,7 +60,7 @@
         "mode" : "avgt",
         "threads" : 1,
         "forks" : 1,
-        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-aarch64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
+        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-x64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
         "jvmArgs" : [
             "-XX:ThreadPriorityPolicy=1",
             "-XX:+UnlockExperimentalVMOptions",
@@ -77,32 +77,32 @@
         "measurementTime" : "1 s",
         "measurementBatchSize" : 1,
         "primaryMetric" : {
-            "score" : 28705.087524141254,
-            "scoreError" : 5549.971912294654,
+            "score" : 44148.10340401299,
+            "scoreError" : 14094.078475262415,
             "scoreConfidence" : [
-                23155.1156118466,
-                34255.059436435906
+                30054.024928750572,
+                58242.181879275406
             ],
             "scorePercentiles" : {
-                "0.0" : 27576.10924324324,
-                "50.0" : 27786.18808108108,
-                "90.0" : 30436.198212121213,
-                "95.0" : 30436.198212121213,
-                "99.0" : 30436.198212121213,
-                "99.9" : 30436.198212121213,
-                "99.99" : 30436.198212121213,
-                "99.999" : 30436.198212121213,
-                "99.9999" : 30436.198212121213,
-                "100.0" : 30436.198212121213
+                "0.0" : 40896.27896,
+                "50.0" : 42176.10120833333,
+                "90.0" : 49649.250238095236,
+                "95.0" : 49649.250238095236,
+                "99.0" : 49649.250238095236,
+                "99.9" : 49649.250238095236,
+                "99.99" : 49649.250238095236,
+                "99.999" : 49649.250238095236,
+                "99.9999" : 49649.250238095236,
+                "100.0" : 49649.250238095236
             },
             "scoreUnit" : "us/op",
             "rawData" : [
                 [
-                    27576.10924324324,
-                    30117.188705882352,
-                    30436.198212121213,
-                    27609.75337837838,
-                    27786.18808108108
+                    40896.27896,
+                    41909.00725,
+                    42176.10120833333,
+                    46109.87936363636,
+                    49649.250238095236
                 ]
             ]
         },
@@ -115,7 +115,7 @@
         "mode" : "avgt",
         "threads" : 1,
         "forks" : 1,
-        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-aarch64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
+        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-x64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
         "jvmArgs" : [
             "-XX:ThreadPriorityPolicy=1",
             "-XX:+UnlockExperimentalVMOptions",
@@ -132,32 +132,32 @@
         "measurementTime" : "1 s",
         "measurementBatchSize" : 1,
         "primaryMetric" : {
-            "score" : 48626.53103064935,
-            "scoreError" : 5570.855237526025,
+            "score" : 90652.3479681818,
+            "scoreError" : 11281.313818855971,
             "scoreConfidence" : [
-                43055.67579312332,
-                54197.386268175374
+                79371.03414932583,
+                101933.66178703777
             ],
             "scorePercentiles" : {
-                "0.0" : 46360.755681818184,
-                "50.0" : 48953.267857142855,
-                "90.0" : 50338.0979,
-                "95.0" : 50338.0979,
-                "99.0" : 50338.0979,
-                "99.9" : 50338.0979,
-                "99.99" : 50338.0979,
-                "99.999" : 50338.0979,
-                "99.9999" : 50338.0979,
-                "100.0" : 50338.0979
+                "0.0" : 87556.61391666667,
+                "50.0" : 91828.76863636363,
+                "90.0" : 93947.69654545454,
+                "95.0" : 93947.69654545454,
+                "99.0" : 93947.69654545454,
+                "99.9" : 93947.69654545454,
+                "99.99" : 93947.69654545454,
+                "99.999" : 93947.69654545454,
+                "99.9999" : 93947.69654545454,
+                "100.0" : 93947.69654545454
             },
             "scoreUnit" : "us/op",
             "rawData" : [
                 [
-                    48443.34719047619,
-                    49037.18652380953,
-                    48953.267857142855,
-                    46360.755681818184,
-                    50338.0979
+                    93947.69654545454,
+                    92368.43890909091,
+                    87556.61391666667,
+                    87560.22183333333,
+                    91828.76863636363
                 ]
             ]
         },
@@ -170,7 +170,7 @@
         "mode" : "avgt",
         "threads" : 1,
         "forks" : 1,
-        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-aarch64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
+        "jvm" : "/Users/cdepaula/Library/Caches/Coursier/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.2/graalvm-community-jdk-21.0.2_macos-x64_bin.tar.gz/graalvm-community-openjdk-21.0.2+13.1/Contents/Home/bin/java",
         "jvmArgs" : [
             "-XX:ThreadPriorityPolicy=1",
             "-XX:+UnlockExperimentalVMOptions",
@@ -187,32 +187,32 @@
         "measurementTime" : "1 s",
         "measurementBatchSize" : 1,
         "primaryMetric" : {
-            "score" : 18270.59931428571,
-            "scoreError" : 592.7706575284338,
+            "score" : 23156.936601021174,
+            "scoreError" : 2126.7553203699904,
             "scoreConfidence" : [
-                17677.828656757276,
-                18863.369971814147
+                21030.181280651184,
+                25283.691921391164
             ],
             "scorePercentiles" : {
-                "0.0" : 18094.15848214286,
-                "50.0" : 18258.744053571427,
-                "90.0" : 18467.45,
-                "95.0" : 18467.45,
-                "99.0" : 18467.45,
-                "99.9" : 18467.45,
-                "99.99" : 18467.45,
-                "99.999" : 18467.45,
-                "99.9999" : 18467.45,
-                "100.0" : 18467.45
+                "0.0" : 22724.409022222222,
+                "50.0" : 22859.231477272726,
+                "90.0" : 23957.51845238095,
+                "95.0" : 23957.51845238095,
+                "99.0" : 23957.51845238095,
+                "99.9" : 23957.51845238095,
+                "99.99" : 23957.51845238095,
+                "99.999" : 23957.51845238095,
+                "99.9999" : 23957.51845238095,
+                "100.0" : 23957.51845238095
             },
             "scoreUnit" : "us/op",
             "rawData" : [
                 [
-                    18258.744053571427,
-                    18094.15848214286,
-                    18155.119035714284,
-                    18377.525,
-                    18467.45
+                    22733.768355555556,
+                    22859.231477272726,
+                    22724.409022222222,
+                    23509.75569767442,
+                    23957.51845238095
                 ]
             ]
         },

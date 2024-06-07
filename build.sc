@@ -6,12 +6,12 @@ import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
 import mill.contrib.scoverage._
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
-import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
+import $ivy.`io.chris-kipp::mill-ci-release::0.1.10`
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
 import $ivy.`com.github.lolgab::mill-crossplatform::0.2.4`
 import com.github.lolgab.mill.crossplatform._
-import $ivy.`com.goyeau::mill-scalafix::0.3.2`
+import $ivy.`com.goyeau::mill-scalafix::0.4.0`
 import com.goyeau.mill.scalafix.ScalafixModule
 import $ivy.`com.carlosedp::mill-aliases::0.4.1`
 import com.carlosedp.aliases._
@@ -22,10 +22,10 @@ object versions {
     val scala3      = "3.3.3"
     val scalajs     = "1.16.0"
     val scalanative = "0.4.17"
-    val zio         = "2.0.21"
+    val zio         = "2.1.2"
     val scoverage   = "2.0.8"
     val jmh         = "1.37"
-    val ziojmh      = "0.3.0"
+    val ziojmh      = "0.3.1"
 }
 
 trait Publish extends CiReleaseModule {
@@ -58,7 +58,7 @@ trait Common extends ScalaModule
     with TpolecatModule {
     def scalaVersion = versions.scala3
     def scalacOptions = T {
-        super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard", "-Wnonunit-statement")
+        super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard")
     }
     def ivyDeps = Agg(
         ivy"dev.zio::zio:${versions.zio}"
