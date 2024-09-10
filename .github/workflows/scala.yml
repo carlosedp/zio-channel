@@ -143,31 +143,7 @@ jobs:
           prerelease: "false"
           draft: "false"
 
-  update-versions:
-    needs: [publish-release]
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    # Only publish releases from tags
-    if: contains(github.ref, 'refs/tags/')
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache packages
-        uses: coursier/cache-action@v6
-        id: coursier-cache
-
-      - name: Run replacement command
+      - name: Run version replacement task
         run: ./mill updateExampleVersions
 
       - name: Add and Commit files

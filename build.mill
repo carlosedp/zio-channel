@@ -13,7 +13,7 @@ import $ivy.`com.github.lolgab::mill-crossplatform::0.2.4`
 import com.github.lolgab.mill.crossplatform._
 import $ivy.`com.goyeau::mill-scalafix::0.4.0`
 import com.goyeau.mill.scalafix.ScalafixModule
-import $ivy.`com.carlosedp::mill-aliases::0.4.1`
+import $ivy.`com.carlosedp::mill-aliases::0.5.0`
 import com.carlosedp.aliases._
 import $ivy.`io.github.davidgregory084::mill-tpolecat::0.3.5`
 import io.github.davidgregory084.TpolecatModule
@@ -21,8 +21,8 @@ import io.github.davidgregory084.TpolecatModule
 object versions {
     val scala3      = "3.3.3"
     val scalajs     = "1.16.0"
-    val scalanative = "0.4.17"
-    val zio         = "2.1.2"
+    val scalanative = "0.5.5"
+    val zio         = "2.1.9"
     val scoverage   = "2.0.8"
     val jmh         = "1.37"
     val ziojmh      = "0.3.1"
@@ -135,27 +135,24 @@ object scoverage extends ScoverageReport {
 
 // Go thru Readme and all examples in ./examples/src/*.scala and update the versions
 def updateExampleVersions() = T.command {
-    val examples = os.list(os.pwd / "examples" / "src").filter(_.ext == "scala")
-    examples.foreach { example =>
+    val files = Seq(T.workspace / "README.md") ++
+        os.list(T.workspace / "examples" / "src")
+            .filter(_.ext == "scala")
+    println(s"Updating versions in ${files.size} files")
+    println(s"Current version: ${`zio-channel`.jvm.latestVersion()}")
+    files.foreach { file =>
         val newContent =
-            os.read(example).replaceAll(
-                "com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+",
-                s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
-            )
-        os.write.over(example, newContent)
+            os.read(file)
+                .replaceAll( // Update mill version
+                    "com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+",
+                    s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
+                )
+                .replaceAll( // Update the SBT version
+                    """"com.carlosedp" %% "zio-channel" % .+""",
+                    s""""com.carlosedp" %% "zio-channel" % "${`zio-channel`.jvm.latestVersion()}"""",
+                )
+        os.write.over(file, newContent)
     }
-    // Update the README.md with the latest version
-    val readme = os.read(os.pwd / "README.md")
-    val newReadme = readme
-        .replaceAll( // Update Mill/Scala-cli version
-            "com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+",
-            s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
-        )
-        .replaceAll( // Update the SBT version
-            """"com.carlosedp" %% "zio-channel" % .+""",
-            s""""com.carlosedp" %% "zio-channel" % "${`zio-channel`.jvm.latestVersion()}"""",
-        )
-    os.write.over(os.pwd / "README.md", newReadme)
 }
 
 object MyAliases extends Aliases {
