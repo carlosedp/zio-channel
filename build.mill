@@ -113,16 +113,17 @@ object benchmarks extends Common with JmhModule {
     def moduleDeps     = Seq(`zio-channel`.jvm)
     def ivyDeps        = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:${versions.ziojmh}")
     def copyResultJson = T {
+        println(s"Running from ${T.dest}")
         val id =
-            os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call().out.text().trim()
+            os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call(cwd = T.workspace).out.text().trim()
         val benchfile = s"jmh-result-${id}.json"
         os.copy.over(
             T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-            os.pwd / "benchmark-files" / benchfile,
+            T.workspace / "benchmark-files" / benchfile,
         )
         os.copy.over(
             T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-            os.pwd / "benchmark-files" / "jmh-result-latest.json",
+            T.workspace / "benchmark-files" / "jmh-result-latest.json",
         )
 
     }
@@ -135,6 +136,7 @@ object scoverage extends ScoverageReport {
 
 // Go thru Readme and all examples in ./examples/src/*.scala and update the versions
 def updateExampleVersions() = T.command {
+    println(s"Readme is at ${T.workspace}")
     val files = Seq(T.workspace / "README.md") ++
         os.list(T.workspace / "examples" / "src")
             .filter(_.ext == "scala")
@@ -150,6 +152,10 @@ def updateExampleVersions() = T.command {
                 .replaceAll( // Update the SBT version
                     """"com.carlosedp" %% "zio-channel" % .+""",
                     s""""com.carlosedp" %% "zio-channel" % "${`zio-channel`.jvm.latestVersion()}"""",
+                )
+                .replaceAll( // Update ZIO version
+                    "dev.zio::zio:\\d+\\.\\d+\\.\\d+",
+                    s"dev.zio::zio:${versions.zio}",
                 )
         os.write.over(file, newContent)
     }
