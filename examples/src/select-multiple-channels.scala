@@ -11,17 +11,17 @@ import zio.channel.*
 
 object ZioChanSelect extends ZIOAppDefault:
 
-    val program =
-        for
-            chan1 <- Channel.make[Int]
-            chan2 <- Channel.make[Int]
-            _     <- chan1.send(1).fork
-            _     <- chan2.send(2).fork
-            s     <- Channel.select(chan1, chan2)
-            _     <- Console.printLine(s"Received $s")
-            s     <- Channel.select(chan1, chan2)
-            _     <- Console.printLine(s"Received $s")
-        yield ()
+  val program =
+    for
+      chan1 <- Channel.make[Int]
+      chan2 <- Channel.make[Int]
+      _     <- chan1.send(1).fork
+      _     <- chan2.send(2).fork
+      s     <- Channel.select(chan1, chan2)
+      _     <- Console.printLine(s"Received $s")
+      s     <- Channel.select(chan1, chan2)
+      _     <- Console.printLine(s"Received $s")
+    yield ()
 
-    val run = program
+  val run = program
 end ZioChanSelect
