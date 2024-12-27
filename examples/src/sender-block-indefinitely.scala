@@ -15,8 +15,7 @@ object ZioChan1 extends ZIOAppDefault:
       chan <- Channel.make[Int]
       f1 <- (chan.receive.tap(i =>
         Console.printLine(s"Receiver 1 received $i and app will block now requiring Ctrl-C")
-      )
-        *> Console.printLine("Receiver resumed")).fork
+      ) *> Console.printLine("Receiver resumed")).fork
       _ <- Console.printLine("Sender 1 will send 1")
       _ <- chan.send(1)
       _ <- Console.printLine("Sender 1 will send 2")
