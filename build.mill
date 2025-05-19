@@ -23,7 +23,7 @@ object versions {
   val scala3      = "3.3.6"
   val scalajs     = "1.19.0"
   val scalanative = "0.5.7"
-  val zio         = "2.1.18"
+  val zio         = "2.1.14"
   val scoverage   = "2.0.8"
   val jmh         = "1.37"
   val ziojmh      = "0.3.3"
