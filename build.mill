@@ -1,3 +1,5 @@
+package build
+
 import mill._, scalalib._
 import scalafmt._, publish._
 import scalajslib._, scalanativelib._
@@ -6,29 +8,28 @@ import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
 import mill.contrib.scoverage._
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
-import $ivy.`io.chris-kipp::mill-ci-release::0.1.10`
-import io.kipp.mill.ci.release.{CiReleaseModule, SonatypeHost}
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1`
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $ivy.`com.github.lolgab::mill-crossplatform::0.2.4`
 import com.github.lolgab.mill.crossplatform._
-import $ivy.`com.goyeau::mill-scalafix::0.4.2`
+import $ivy.`com.goyeau::mill-scalafix::0.5.1`
 import com.goyeau.mill.scalafix.ScalafixModule
-import $ivy.`com.carlosedp::mill-aliases::0.6.0`
+import $ivy.`com.carlosedp::mill-aliases::0.7.0`
 import com.carlosedp.aliases._
 import $ivy.`io.github.davidgregory084::mill-tpolecat::0.3.5`
 import io.github.davidgregory084.TpolecatModule
 
 object versions {
-  val scala3      = "3.3.4"
-  val scalajs     = "1.17.0"
-  val scalanative = "0.5.6"
-  val zio         = "2.1.9"
+  val scala3      = "3.3.6"
+  val scalajs     = "1.19.0"
+  val scalanative = "0.5.7"
+  val zio         = "2.1.18"
   val scoverage   = "2.0.8"
   val jmh         = "1.37"
-  val ziojmh      = "0.3.1"
+  val ziojmh      = "0.3.3"
 }
 
-trait Publish extends CiReleaseModule {
+trait Publish extends SonatypeCentralPublishModule {
   def pomSettings = PomSettings(
     description = "Zio-channel is a Go-like channel implementation for ZIO",
     organization = "com.carlosedp",
@@ -57,7 +58,6 @@ trait Publish extends CiReleaseModule {
       s"${v(0)}.${(v(1).toInt) + 1}-SNAPSHOT"
     }
   }
-  override def sonatypeHost = Some(SonatypeHost.s01)
 }
 
 trait Common extends ScalaModule
@@ -167,7 +167,7 @@ object MyAliases extends Aliases {
   def checkfmt = alias("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources")
   def lint     = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources", "__.fix", "__.compile")
   def deps     = alias("mill.scalalib.Dependency/showUpdates")
-  def pub      = alias("io.kipp.mill.ci.release.ReleaseModule/publishAll")
+  def pub      = alias(" mill.scalalib.SonatypeCentralPublishModule/")
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")

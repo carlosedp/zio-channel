@@ -13,6 +13,7 @@ project/boot/
 project/plugins/project/
 **/.bloop
 .bsp/
+mill.*
 
 # mill specific
 out/
@@ -41,4 +42,3 @@ index.scip
 /config
 shared/resources/META-INF/native-image/.lock
 *.semanticdb
-.vscode
