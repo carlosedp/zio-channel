@@ -167,7 +167,7 @@ object MyAliases extends Aliases {
   def checkfmt = alias("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources")
   def lint     = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources", "__.fix", "__.compile")
   def deps     = alias("mill.scalalib.Dependency/showUpdates")
-  def pub      = alias(" mill.scalalib.SonatypeCentralPublishModule/")
+  def pub      = alias("mill.scalalib.SonatypeCentralPublishModule/")
   def publocal = alias("zio-channel.__.publishLocal")
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
