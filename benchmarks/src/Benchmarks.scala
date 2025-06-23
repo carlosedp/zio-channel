@@ -56,4 +56,13 @@ class Benchmarks:
       _     <- queue.offer(1).repeatN(numMessages)
       _     <- queue.take.repeatN(numMessages)
     yield ()
+
+  // This benchmark tests the performance of non-blocking trySend/tryReceive operations
+  @Benchmark
+  def trySendTryReceiveZioChannel: Unit = executeZio:
+    for
+      chan <- Channel.make[Int](numMessages + 1)
+      _    <- ZIO.foreach(1 to numMessages)(i => chan.trySend(i))
+      _    <- ZIO.foreach(1 to numMessages)(_ => chan.tryReceive)
+    yield ()
 end Benchmarks

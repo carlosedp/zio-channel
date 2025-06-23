@@ -298,5 +298,35 @@ object ChannelSpec extends ZIOSpecDefault:
             s1 == true,
             s2 == 1,
           )
+
+        test("trySend on buffered channel should succeed without blocking"):
+          for
+            chan      <- Channel.make[Int](2)
+            result1   <- chan.trySend(1)
+            result2   <- chan.trySend(2)
+            result3   <- chan.trySend(3) // Should fail as capacity is 2
+            received1 <- chan.tryReceive
+            received2 <- chan.tryReceive
+            received3 <- chan.tryReceive
+          yield assertTrue(
+            result1 == true,
+            result2 == true,
+            result3 == false,
+            received1 == Some(1),
+            received2 == Some(2),
+            received3 == None,
+          )
+
+        test("trySend on unbuffered channel should fail"):
+          for
+            chan   <- Channel.make[Int](0)
+            result <- chan.trySend(1)
+          yield assertTrue(result == false)
+
+        test("tryReceive on empty channel should return None"):
+          for
+            chan   <- Channel.make[Int](1)
+            result <- chan.tryReceive
+          yield assertTrue(result == None)
     @@ TestAspect.timeout(10.seconds)
 end ChannelSpec

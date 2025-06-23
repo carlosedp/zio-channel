@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "zio-channel-metals": {
+      "url": "http://localhost:45410/sse",
+      "type": "sse"
+    }
+  }
+}
