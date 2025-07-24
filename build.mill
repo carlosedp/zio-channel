@@ -1,35 +1,35 @@
+//| mill-version: 1.0.1
+//| repositories: [https://s01.oss.sonatype.org/content/repositories/snapshots]
+//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
+//| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
+//| - com.carlosedp::mill-aliases::1.0.0
+//| - com.goyeau::mill-scalafix::0.6.0
+//| - org.typelevel::scalac-options:0.1.7
+
 package build
 
-import mill._, scalalib._
-import scalafmt._, publish._
-import scalajslib._, scalanativelib._
+import mill.*, mill.api.BuildCtx, scalalib.*
+import scalafmt.*, publish.*
+import scalajslib.*, scalanativelib.*
+import mill.api.Task.Simple
 
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
-import mill.contrib.scoverage._
-import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
+import mill.contrib.scoverage.*
 import contrib.jmh.JmhModule
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1`
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import $ivy.`com.github.lolgab::mill-crossplatform::0.2.4`
-import com.github.lolgab.mill.crossplatform._
-import $ivy.`com.goyeau::mill-scalafix::0.5.1`
+import com.carlosedp.aliases.*
+import org.typelevel.scalacoptions.*
 import com.goyeau.mill.scalafix.ScalafixModule
-import $ivy.`com.carlosedp::mill-aliases::0.7.0`
-import com.carlosedp.aliases._
-import $ivy.`io.github.davidgregory084::mill-tpolecat::0.3.5`
-import io.github.davidgregory084.TpolecatModule
 
-object versions {
+object versions:
   val scala3      = "3.3.6"
   val scalajs     = "1.19.0"
   val scalanative = "0.5.8"
-  val zio         = "2.1.19"
+  val zio         = "2.1.20"
   val scoverage   = "2.0.8"
   val jmh         = "1.37"
   val ziojmh      = "0.3.3"
-}
 
-trait Publish extends SonatypeCentralPublishModule {
+trait Publish extends SonatypeCentralPublishModule:
   def pomSettings = PomSettings(
     description = "Zio-channel is a Go-like channel implementation for ZIO",
     organization = "com.carlosedp",
@@ -40,110 +40,100 @@ trait Publish extends SonatypeCentralPublishModule {
       Developer("carlosedp", "Carlos Eduardo de Paula", "https://github.com/carlosedp")
     ),
   )
-  def latestVersion = T {
-    val v = VcsVersion.vcsState().stripV(VcsVersion.vcsState().lastTag.get)
-    if (v.endsWith("-SNAPSHOT")) {
+
+  def latestVersion = Task:
+    val v = os.proc("git", "describe", "--tags", "--abbrev=0").call().out.trim().stripPrefix("v")
+    if v.endsWith("-SNAPSHOT") then
       v.replace("-SNAPSHOT", "")
-    } else {
+    else
       v
-    }
-  }
-  def publishVersion = T {
-    val isTag = T.ctx().env.get("GITHUB_REF").exists(_.startsWith("refs/tags"))
-    val state = VcsVersion.vcsState()
-    if (state.commitsSinceLastTag == 0 && isTag) {
-      state.stripV(state.lastTag.get)
-    } else {
-      val v = state.stripV(state.lastTag.get).split('.')
-      s"${v(0)}.${(v(1).toInt) + 1}-SNAPSHOT"
-    }
-  }
-}
+
+  def publishVersion: Simple[String] = Task:
+    val isTag      = Task.env.get("GITHUB_REF").exists(_.startsWith("refs/tags"))
+    val currentTag = os.proc("git", "describe", "--tags", "--abbrev=0").call().out.trim()
+    val commits    = os.proc("git", "rev-list", "--count", s"$currentTag..HEAD").call().out.trim().toInt
+    if isTag && commits == 0 then currentTag.stripPrefix("v")
+    else
+      val Array(major, minor, patch) = currentTag.stripPrefix("v").split('.').map(_.toInt)
+      s"$major.${minor + 1}.$patch-SNAPSHOT"
+
+end Publish
 
 trait Common extends ScalaModule
     with ScalafmtModule
-    with ScalafixModule
-    with TpolecatModule {
+    with ScalafixModule:
   def scalaVersion = versions.scala3
-  def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Wunused:all", "-Wvalue-discard")
-  }
-  def ivyDeps = Agg(
-    ivy"dev.zio::zio:${versions.zio}"
+  def scalacOptions = Task:
+    super.scalacOptions() ++
+      ScalacOptions.defaultTokensForVersion(ScalaVersion.unsafeFromString(scalaVersion()))
+  def mvnDeps = Seq(
+    mvn"dev.zio::zio:${versions.zio}"
   )
-}
 
-trait CommonTests extends TestModule.ZioTest {
-  def ivyDeps = Agg(
-    ivy"dev.zio::zio-test::${versions.zio}",
-    ivy"dev.zio::zio-test-sbt::${versions.zio}",
+trait CommonTests extends TestModule.ZioTest:
+  def mvnDeps = Seq(
+    mvn"dev.zio::zio-test::${versions.zio}",
+    mvn"dev.zio::zio-test-sbt::${versions.zio}",
   )
-}
 
-object `zio-channel` extends CrossPlatform {
-  trait Shared extends CrossPlatformScalaModule
-      with Common
-      with Publish {
+object `zio-channel` extends Module:
+  trait Shared extends Common with Publish:
     def artifactName = "zio-channel"
-  }
-  object jvm extends Shared with ScoverageModule {
-    // jvm specific settings here
+    def sources      = Task.Sources(moduleDir / os.up / "src")
+
+  object jvm extends Shared with ScoverageModule:
     def scoverageVersion = versions.scoverage
-    object test extends ScalaTests with CommonTests with ScoverageTests
-  }
-  object js extends Shared with ScalaJSModule {
+    object test extends ScalaTests with CommonTests with ScoverageTests:
+      def sources = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
+  object js extends Shared with ScalaJSModule:
     def scalaJSVersion = versions.scalajs
-    // js specific settings here
-    object test extends ScalaJSTests with CommonTests
-  }
-  object native extends Shared with ScalaNativeModule {
+    object test extends ScalaJSTests with CommonTests:
+      def sources = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
+
+  object native extends Shared with ScalaNativeModule:
     // native specific settings here
     def scalaNativeVersion = versions.scalanative
-    object test extends ScalaNativeTests with CommonTests
-  }
-}
+    object test extends ScalaNativeTests with CommonTests:
+      def sources = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
+end `zio-channel`
 
-object examples extends Common {
+object examples extends Common:
   def moduleDeps = Seq(`zio-channel`.jvm)
-}
 
-object benchmarks extends Common with JmhModule {
+object benchmarks extends Common with JmhModule:
   def jmhCoreVersion = versions.jmh
   def moduleDeps     = Seq(`zio-channel`.jvm)
-  def ivyDeps        = super.ivyDeps() ++ Agg(ivy"dev.zio::zio-profiling-jmh:${versions.ziojmh}")
-  def copyResultJson = T {
-    println(s"Running from ${T.dest}")
+  def mvnDeps        = super.mvnDeps() ++ Seq(mvn"dev.zio::zio-profiling-jmh:${versions.ziojmh}")
+  def copyResultJson = Task:
+    println(s"Running from ${Task.dest}")
     val id =
       os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call(cwd =
-        T.workspace
+        BuildCtx.workspaceRoot
       ).out.text().trim()
     val benchfile = s"jmh-result-${id}.json"
     os.copy.over(
-      T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-      T.workspace / "benchmark-files" / benchfile,
+      Task.dest / os.up / "runJmh.dest" / "jmh-result.json",
+      BuildCtx.workspaceRoot / "benchmark-files" / benchfile,
     )
     os.copy.over(
-      T.dest / os.up / "runJmh.dest" / "jmh-result.json",
-      T.workspace / "benchmark-files" / "jmh-result-latest.json",
+      Task.dest / os.up / "runJmh.dest" / "jmh-result.json",
+      BuildCtx.workspaceRoot / "benchmark-files" / "jmh-result-latest.json",
     )
+end benchmarks
 
-  }
-}
-
-object scoverage extends ScoverageReport {
+object scoverage extends ScoverageReport:
   def scalaVersion     = versions.scala3
   def scoverageVersion = versions.scoverage
-}
 
 // Go thru Readme and all examples in ./examples/src/*.scala and update the versions
-def updateExampleVersions() = T.command {
-  println(s"Readme is at ${T.workspace}")
-  val files = Seq(T.workspace / "README.md") ++
-    os.list(T.workspace / "examples" / "src")
+def updateExampleVersions() = Task.Command:
+  println(s"Readme is at ${BuildCtx.workspaceRoot}")
+  val files = Seq(BuildCtx.workspaceRoot / "Readme.md") ++
+    os.list(BuildCtx.workspaceRoot / "examples" / "src")
       .filter(_.ext == "scala")
   println(s"Updating versions in ${files.size} files")
   println(s"Current version: ${`zio-channel`.jvm.latestVersion()}")
-  files.foreach { file =>
+  files.foreach: file =>
     val newContent =
       os.read(file)
         .replaceAll( // Update mill version
@@ -159,10 +149,8 @@ def updateExampleVersions() = T.command {
           s"dev.zio::zio:${versions.zio}",
         )
     os.write.over(file, newContent)
-  }
-}
 
-object MyAliases extends Aliases {
+object MyAliases extends Aliases:
   def fmt      = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources")
   def checkfmt = alias("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources")
   def lint     = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources", "__.fix", "__.compile")
@@ -172,4 +160,3 @@ object MyAliases extends Aliases {
   def testall  = alias("__.test")
   def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
   def bench    = alias(s"benchmarks.runJmh -rf json", "benchmarks.copyResultJson")
-}
