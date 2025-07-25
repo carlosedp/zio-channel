@@ -15,7 +15,7 @@ jobs:
   test:
     strategy:
       matrix:
-        jvm: ["17"]
+        jvm: ["21"]
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Check Formatting
         run: ./mill Alias/run checkfmt
-        if: startsWith(matrix.jvm, '17')
+        if: startsWith(matrix.jvm, '21')
 
       - name: Run tests for all versions
         run: ./mill Alias/run testall
@@ -59,7 +59,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: 17
+          java-version: 21
 
       # Required to run code on ScalaJS
       - name: Install libuv
@@ -91,7 +91,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: 21
 
       - name: Cache packages
         uses: coursier/cache-action@v6
@@ -122,7 +122,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: 21
 
       - name: Cache packages
         uses: coursier/cache-action@v6
