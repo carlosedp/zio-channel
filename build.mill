@@ -61,7 +61,9 @@ trait Common extends ScalaModule
   def scalaVersion = versions.scala3
   def scalacOptions = Task:
     super.scalacOptions() ++
-      ScalacOptions.defaultTokensForVersion(ScalaVersion.unsafeFromString(scalaVersion()))
+      ScalacOptions.defaultTokensForVersion(
+        ScalaVersion.unsafeFromString(scalaVersion())
+      ).filterNot(_.contains("-Wnonunit-statement")) // Errors on Temurin 17/21
   def mvnDeps = Seq(
     mvn"dev.zio::zio:${versions.zio}"
   )

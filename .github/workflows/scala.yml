@@ -15,7 +15,7 @@ jobs:
   test:
     strategy:
       matrix:
-        jvm: ["21"]
+        jvm: ["17", "21"]
     runs-on: ubuntu-latest
 
     steps:
