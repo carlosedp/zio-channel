@@ -3,7 +3,7 @@
 //| mvnDeps:
 //| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
 //| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
-//| - com.carlosedp::mill-aliases::1.0.0
+//| - com.carlosedp::mill-aliases::1.1.0
 //| - com.goyeau::mill-scalafix::0.6.0
 //| - org.typelevel::scalac-options:0.1.7
 
@@ -42,11 +42,7 @@ trait Publish extends SonatypeCentralPublishModule:
   )
 
   def latestVersion = Task:
-    val v = os.proc("git", "describe", "--tags", "--abbrev=0").call().out.trim().stripPrefix("v")
-    if v.endsWith("-SNAPSHOT") then
-      v.replace("-SNAPSHOT", "")
-    else
-      v
+    os.proc("git", "describe", "--tags", "--abbrev=0").call().out.trim().stripPrefix("v")
 
   def publishVersion: Simple[String] = Task:
     val isTag      = Task.env.get("GITHUB_REF").exists(_.startsWith("refs/tags"))
@@ -85,13 +81,13 @@ object `zio-channel` extends Module:
     def scoverageVersion = versions.scoverage
     object test extends ScalaTests with CommonTests with ScoverageTests:
       def sources = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
+
   object js extends Shared with ScalaJSModule:
     def scalaJSVersion = versions.scalajs
     object test extends ScalaJSTests with CommonTests:
       def sources = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
 
   object native extends Shared with ScalaNativeModule:
-    // native specific settings here
     def scalaNativeVersion = versions.scalanative
     object test extends ScalaNativeTests with CommonTests:
       def sources = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
@@ -104,59 +100,65 @@ object benchmarks extends Common with JmhModule:
   def jmhCoreVersion = versions.jmh
   def moduleDeps     = Seq(`zio-channel`.jvm)
   def mvnDeps        = super.mvnDeps() ++ Seq(mvn"dev.zio::zio-profiling-jmh:${versions.ziojmh}")
+
   def copyResultJson = Task:
     println(s"Running from ${Task.dest}")
-    val id =
-      os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S").call(cwd =
-        BuildCtx.workspaceRoot
-      ).out.text().trim()
-    val benchfile = s"jmh-result-${id}.json"
-    os.copy.over(
-      Task.dest / os.up / "runJmh.dest" / "jmh-result.json",
-      BuildCtx.workspaceRoot / "benchmark-files" / benchfile,
-    )
-    os.copy.over(
-      Task.dest / os.up / "runJmh.dest" / "jmh-result.json",
-      BuildCtx.workspaceRoot / "benchmark-files" / "jmh-result-latest.json",
-    )
+    val timestamp = os.proc("git", "log", "-1", "--format=%h-%cd", "--date=format:%Y-%m-%dT%H:%M:%S")
+      .call(cwd = BuildCtx.workspaceRoot).out.text().trim()
+    val benchmarkFile = s"jmh-result-${timestamp}.json"
+    val sourceFile    = Task.dest / os.up / "runJmh.dest" / "jmh-result.json"
+    val benchmarkDir  = BuildCtx.workspaceRoot / "benchmark-files"
+
+    os.copy.over(sourceFile, benchmarkDir / benchmarkFile)
+    os.copy.over(sourceFile, benchmarkDir / "jmh-result-latest.json")
 end benchmarks
 
 object scoverage extends ScoverageReport:
   def scalaVersion     = versions.scala3
   def scoverageVersion = versions.scoverage
 
-// Go thru Readme and all examples in ./examples/src/*.scala and update the versions
+// Update versions in Readme and examples
 def updateExampleVersions() = Task.Command:
-  println(s"Readme is at ${BuildCtx.workspaceRoot}")
-  val files = Seq(BuildCtx.workspaceRoot / "Readme.md") ++
-    os.list(BuildCtx.workspaceRoot / "examples" / "src")
-      .filter(_.ext == "scala")
+  val workspaceRoot  = BuildCtx.workspaceRoot
+  val currentVersion = `zio-channel`.jvm.latestVersion()
+  val files = Seq(workspaceRoot / "Readme.md") ++
+    os.list(workspaceRoot / "examples" / "src").filter(_.ext == "scala")
+
   println(s"Updating versions in ${files.size} files")
-  println(s"Current version: ${`zio-channel`.jvm.latestVersion()}")
+  println(s"Current version: $currentVersion")
+
+  val versionUpdates = Seq(
+    ("com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+", s"com.carlosedp::zio-channel:$currentVersion"),
+    (""""com.carlosedp" %% "zio-channel" % .+""", s""""com.carlosedp" %% "zio-channel" % "$currentVersion""""),
+    ("dev.zio::zio:\\d+\\.\\d+\\.\\d+", s"dev.zio::zio:${versions.zio}"),
+  )
+
   files.foreach: file =>
-    val newContent =
-      os.read(file)
-        .replaceAll( // Update mill version
-          "com.carlosedp::zio-channel:\\d+\\.\\d+\\.\\d+",
-          s"com.carlosedp::zio-channel:${`zio-channel`.jvm.latestVersion()}",
-        )
-        .replaceAll( // Update the SBT version
-          """"com.carlosedp" %% "zio-channel" % .+""",
-          s""""com.carlosedp" %% "zio-channel" % "${`zio-channel`.jvm.latestVersion()}"""",
-        )
-        .replaceAll( // Update ZIO version
-          "dev.zio::zio:\\d+\\.\\d+\\.\\d+",
-          s"dev.zio::zio:${versions.zio}",
-        )
-    os.write.over(file, newContent)
+    val content = os.read(file)
+    val updatedContent = versionUpdates.foldLeft(content): (acc, update) =>
+      acc.replaceAll(update._1, update._2)
+    os.write.over(file, updatedContent)
 
 object MyAliases extends Aliases:
+  // Formatting
   def fmt      = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources")
   def checkfmt = alias("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources")
   def lint     = alias("mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources", "__.fix", "__.compile")
+
+  // Dependencies and publishing
   def deps     = alias("mill.scalalib.Dependency/showUpdates")
   def pub      = alias("mill.scalalib.SonatypeCentralPublishModule/")
   def publocal = alias("zio-channel.__.publishLocal")
+
+  // Testing and coverage
   def testall  = alias("__.test")
-  def coverage = alias(s"__.test", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
-  def bench    = alias(s"benchmarks.runJmh -rf json", "benchmarks.copyResultJson")
+  def testjvm  = alias("zio-channel.jvm.test")
+  def testjs   = alias("zio-channel.js.test")
+  def coverage = alias("testall", "scoverage.htmlReportAll", "scoverage.xmlReportAll", "scoverage.consoleReportAll")
+
+  // Benchmarking
+  def bench = alias("benchmarks.runJmh -rf json", "benchmarks.copyResultJson")
+
+  // Complete CI pipeline
+  def ci = alias("checkfmt", "__.compile", "coverage")
+end MyAliases
