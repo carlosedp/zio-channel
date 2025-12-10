@@ -29,7 +29,7 @@ jobs:
           java-version: ${{ matrix.jvm }}
 
       - name: Cache packages
-        uses: coursier/cache-action@v6
+        uses: coursier/cache-action@v7
         id: coursier-cache
 
       - name: Run Jmh benchmarks
